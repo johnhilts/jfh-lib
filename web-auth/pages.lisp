@@ -1,14 +1,13 @@
 ;;;; functions to handle auth related concerns. Depends on hunchentoot.
 (cl:in-package #:jfh-web-auth)
 
-;; TODO: fix style warning here for password
 (tbnl:define-easy-handler (authenticate-handler :uri "/auth") (user-login password redirect-back-to)
   (let ((user-info (funcall (find-secure-user-info *web-auth-pages*) user-login)))
     (if
      (and user-info
           (string=
            (jfh-user:user-password user-info)
-           (jfh-user:hash-user-password user-info)))
+           (jfh-user:hash-password password)))
      (progn
        (establish-user-session user-info)
        (funcall (on-auth-hook *web-auth-pages*))

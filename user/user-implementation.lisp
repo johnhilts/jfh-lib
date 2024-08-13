@@ -1,13 +1,5 @@
 (in-package #:jfh-user)
 
-;; TODO: we need to export this? and demote it to a defun with just the plaintext parameter?
-(defmethod hash-user-password ((application-secure-user application-secure-user))
-  "Input: application-secure-user. Output: Encrypted text."
-  (ironclad:byte-array-to-hex-string
-   (ironclad:digest-sequence
-    :sha256
-    (ironclad:ascii-string-to-byte-array (user-password application-secure-user)))))
-
 (defmethod initialize-instance :after ((application-secure-user application-secure-user) &key)
   "Initializations:
 - Encrypt the user password. This is meant to prevent the plain text password from being in memory.

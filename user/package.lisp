@@ -16,7 +16,7 @@
    #:save-application-user
    #:get-user-info
    #:get-secure-user-info
-   #:hash-password ;; do we need to export this?
-   #:hash-user-password
+   #:hash-password
+   ;; #:hash-user-password
    ;; #:get-user-path
    ))

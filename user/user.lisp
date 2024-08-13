@@ -46,3 +46,10 @@
   (let* ((application-user (get-user-info user-login)))
     (when application-user
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+
+(defun hash-password (plaintext-password)
+  "Input: plaintext password. Output: Encrypted password."
+  (ironclad:byte-array-to-hex-string
+   (ironclad:digest-sequence
+    :sha256
+    (ironclad:ascii-string-to-byte-array plaintext-password))))
