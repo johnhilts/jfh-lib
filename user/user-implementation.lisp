@@ -8,7 +8,7 @@
         (password #2=(slot-value application-secure-user '%user-password)))
     (when (zerop (length user-id))
       (setf #1# (jfh-utility:generate-unique-token))
-      (setf #2# (hash-user-password application-secure-user)))))
+      (setf #2# (hash-password password)))))
 
 (defmethod print-object ((application-user application-user) stream)
   "Print application user."

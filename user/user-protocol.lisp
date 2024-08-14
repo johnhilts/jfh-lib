@@ -57,6 +57,3 @@
 
 (defgeneric save-new-application-user (application-user data-store-location)
   (:documentation "Input: application-user. Output: application-user. Persist *NEW* application user info."))
-
-(defgeneric hash-user-password (application-secure-user)
-  (:documentation "Input: application-secure-user. Output: Encrypted text."))
