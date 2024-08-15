@@ -1,6 +1,7 @@
 (in-package #:jfh-store)
 
 (defparameter *data-store-location* nil)
+;; (setf *data-store-location* (make-instance 'data-store-location :settings-file-path "./" :user-path-root "./users/"))
 
 (defun find-and-replace-missing-values (initargs fill-in-values)
   "Input: 1st plist, where some values are '?, 2nd plist which has fill-in values for '? in the 1st plist. Ouptput: the 1st plist modified to replace '? with a fill-in-value."
