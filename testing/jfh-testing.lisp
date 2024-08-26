@@ -17,7 +17,7 @@
                    ,@(test-r (cadr form) (caddr form) ())
                    ,@(mapcar #'(lambda (form) `(progn ,@(test-r (cadr form) (caddr form) (cadddr form)))) (nthcdr 3 form)))
                 (unless (null form)
-                  `(format t " ... ~A!" (if (eval ,form) "passes" "fails"))))))))
+                  `(format t " ... ~A!" (if (eval ,form) "*** PASSES ***" "*** FAILS ***"))))))))
     `(progn ,@(mapcar #'(lambda (e) `(progn ,@(test-r key text e))) form))))
 
 (defun an-example ()
