@@ -30,6 +30,32 @@
     (with-accessors ((user-id user-id)) application-user
       (format nil "~A~A/" user-path-root user-id))))
 
+(defmethod get-user-info ((user-login string))
+  "Search for user info in file system."
+  (let* ((user-index-entry (get-user-index-entry user-login jfh-store:*data-store-location*))
+         (user-id (getf user-index-entry :user-id)))
+    (when user-id
+      (user-entry->application-user (read-user-info user-id "user.sexp")))))
+
+(defmethod get-user-info ((user-fingerprint simple-vector))
+  "Search for user info in file system."
+  (let* ((user-index-entry (get-user-index-entry user-fingerprint jfh-store:*data-store-location*))
+         (user-id (getf user-index-entry :user-id)))
+    (when user-id
+      (user-entry->application-user (read-user-info user-id "user.sexp")))))
+
+(defmethod get-secure-user-info ((user-login string))
+  "Search for secure user info in file system."
+  (let* ((application-user (get-user-info user-login)))
+    (when application-user
+      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+
+(defmethod get-secure-user-info ((user-fingerprint simple-vector))
+  "Search for secure user info in file system."
+  (let* ((application-user (get-user-info user-fingerprint)))
+    (when application-user
+      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+
 (defmethod save-user (file-name user-info-list (application-user application-user) (data-store-location jfh-store:data-store-location))
   "Input: file-name, user info list (not a class), application-user and data-store-location. Output: user info list. Persist application user info."
   (let ((user-info-file-path (format nil "~A~A" (get-user-path application-user data-store-location) file-name)))
@@ -85,9 +111,16 @@
       (ensure-directories-exist (get-user-path application-user data-store-location))
       (save-application-user application-user data-store-location))))
 
-(defmethod find-user-index-entry (user-login (data-store-location jfh-store:data-store-location))
+(defmethod get-user-index-entry ((user-login string) (data-store-location jfh-store:data-store-location))
   "Input: User ID and app-configuration. Output: user index entry."
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))
          (user-index-file-path (get-user-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path)))
     (find-if (lambda (entry) (string= (getf entry :user-login) user-login)) user-index)))
+
+(defmethod get-user-index-entry ((user-fingerprint simple-vector) (data-store-location jfh-store:data-store-location))
+  "Input: User fingerprint and app-configuration. Output: user index entry."
+  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+         (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
+	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
+    (find-if (lambda (entry) (equalp (getf entry :user-fingerprint) user-fingerprint)) user-index)))

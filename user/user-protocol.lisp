@@ -43,6 +43,12 @@
 (defgeneric get-user-index-entry (user-login data-store-location)
   (:documentation "Input: User name (login) and data-store-location. Output: user index entry."))
 
+(defgeneric get-user-info (user-identifier)
+  (:documentation "Input: something that uniquely identifies a user. Output: application-meta-user"))
+
+(defgeneric get-secure-user-info (user-identifier)
+  (:documentation "Input: something that uniquely identifies a user. Output: application-secure-user."))
+
 (defgeneric make-user-index-entry (application-user)
   (:documentation "Input: application-user. Output: user index entry."))
 

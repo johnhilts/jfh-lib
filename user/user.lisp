@@ -11,6 +11,9 @@
 (defun get-user-index-file-path (user-path-root)
   (format nil "~Auser-index.sexp" user-path-root))
 
+(defun get-user-fingerprint-index-file-path (user-path-root)
+  (format nil "~Auser-fingerprint-index.sexp" user-path-root))
+
 (defun user-entry->application-user (user-entry)
   "Input: p-list. Output: application-user."
   (make-instance 'application-meta-user
