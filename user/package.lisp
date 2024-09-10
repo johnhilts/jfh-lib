@@ -10,7 +10,7 @@
    #:user-login
    #:user-password
    #:make-application-user
-;;   #:read-user-info
+   #:read-user-info
    #:save-user
    #:save-new-application-user
    #:save-application-user

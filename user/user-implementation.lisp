@@ -123,4 +123,5 @@
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))
          (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
+
     (find-if (lambda (entry) (equalp (getf entry :user-fingerprint) user-fingerprint)) user-index)))

@@ -4,6 +4,6 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:jfh-store #:jfh-testing #:jfh-user)
+  :depends-on (#:hunchentoot #:jfh-store #:jfh-testing #:jfh-user)
   :components ((:file "package")
                (:file "jfh-user-tests")))

@@ -2,17 +2,26 @@
 (cl:in-package #:jfh-web-auth)
 
 (tbnl:define-easy-handler (authenticate-handler :uri "/auth") (user-login password redirect-back-to)
-  (let ((user-info (funcall (find-secure-user-info *web-auth-pages*) user-login)))
-    (if
-     (and user-info
-          (string=
-           (jfh-user:user-password user-info)
-           (jfh-user:hash-password password)))
-     (progn
-       (establish-user-session user-info)
-       (funcall (on-auth-hook *web-auth-pages*))
-       (tbnl:redirect redirect-back-to))
-     (funcall (show-auth-failure *web-auth-pages*)))))
+  (let* ((user-info (jfh-user:get-secure-user-info user-login))
+         (authed (and user-info
+                      (string=
+                       (jfh-user:user-password user-info)
+                       (jfh-user:hash-password password))))) ;; NOTE: AND returns the result of the last form
+    (handle-auth-result authed user-info redirect-back-to)))
+
+(tbnl:define-easy-handler (authenticate-cert-handler :uri "/auth-cert") (user-fingerprint redirect-back-to)
+  (let* ((user-info (jfh-user:get-secure-user-info user-fingerprint))
+         (authed (not (null user-info))))
+    (handle-auth-result authed user-info redirect-back-to)))
+
+(defun handle-auth-result (authed user-info redirect-back-to) ;; auth'd
+  "handle auth success and failure"
+  (if authed
+      (progn
+        (establish-user-session user-info)
+        (on-successful-auth) ;; 'web-app:on-auth-hook
+        (tbnl:redirect redirect-back-to)) ;; to test this, need to mock *request* and *acceptor*
+      (show-auth-failure))) ;; 'web-app:show-auth-failure
 
 (tbnl:define-easy-handler (login-page-handler :uri "/login") (redirect-back-to)
   (funcall (login-page *web-auth-pages*) redirect-back-to))
