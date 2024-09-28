@@ -21,13 +21,13 @@
         (establish-user-session user-info)
         (on-successful-auth) ;; 'web-app:on-auth-hook
         (tbnl:redirect redirect-back-to)) ;; to test this, need to mock *request* and *acceptor*
-      (show-auth-failure))) ;; 'web-app:show-auth-failure
+      (show-auth-failure)))
 
 (tbnl:define-easy-handler (login-page-handler :uri "/login") (redirect-back-to)
-  (funcall (login-page *web-auth-pages*) redirect-back-to))
+  (login-page redirect-back-to))
 
 (tbnl:define-easy-handler (signup-page-handler :uri "/signup") ()
-  (funcall (signup-page *web-auth-pages*)))
+  (signup-page))
 
 (tbnl:define-easy-handler (logout-page-handler :uri "/logout") ()
   "logout endpoint"
@@ -35,7 +35,7 @@
 	  "~&www-authorization: ~A, authorization: *** ~A ***~%"
 	  (tbnl:header-out :www-authenticate)
 	  (tbnl:header-out "authorization"))
-  (remhash (tbnl:session-value 'the-session) (session-user-map *web-auth-pages*))
+  (remhash (tbnl:session-value 'the-session) *session-user-map*)
   (tbnl:delete-session-value 'the-session)
   (setf (tbnl:header-out :www-authenticate) nil)
   (tbnl:redirect "/login"))

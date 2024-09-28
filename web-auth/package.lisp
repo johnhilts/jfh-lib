@@ -7,13 +7,11 @@
    #:define-protected-page
    #:authenticated-user
    ;; #:use-web-auth
-   ;; #:web-auth-pages
-   ;; #:*web-auth-pages*
-   ;; #:show-auth-failure
-   ;; #:find-user-info
-   ;; #:login-page
+   #:session-user-map
+   #:show-auth-failure
    ;; #:logout-page
-   ;; #:signup-page
+   #:signup-page
+   #:login-page
    #:validate-signup-parameters
    #:establish-user-session
    #:get-authenticated-user))
