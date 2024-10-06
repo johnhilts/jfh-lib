@@ -3,6 +3,7 @@
 (defpackage #:jfh-remoting
   (:use #:common-lisp)
   (:export
-   #:remoting-settings
-   #:start-remoting
-   #:stop-remoting))
+   #:make-remoting-configuration
+   #:swank-port
+   #:start-swank
+   #:stop-swank))

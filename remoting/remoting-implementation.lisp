@@ -21,6 +21,13 @@ Output: remoting-configuration object."
      nil nil
      (lambda (_ __) (declare (ignore _ __)) "./"))))
 
+(defmethod make-actual-remoting-configuration ((remoting-configuration remoting-configuration) actual-swank-port)
+  "Create actual remoting configuration based on the default settings. Meant to be used by START-SWANK.
+Input: default configuration object.
+Output: actual-remoting-configuration object."
+  (with-accessors ((swank-port swank-port) (swank-interface swank-interface)) remoting-configuration
+    (make-instance 'actual-remoting-configuration :swank-port swank-port :swank-interface swank-interface :actual-swank-port actual-swank-port)))
+
 (defmethod save-remoting-configuration ((remoting-configuration remoting-configuration) (data-store-location jfh-store:data-store-location))
   "Input: remoting-configuration and data store location. Output: remoting configuration serialized into a plist."
   (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
@@ -46,10 +53,10 @@ Output: remoting-configuration object."
         (catch 'swank-start
           (let ((actual-port (start-swank-server)))
 	    (format t "Started swank at port: ~A." actual-port)
-            actual-port))))))
+            (make-actual-remoting-configuration remoting-configuration actual-port)))))))
 
-(defmethod stop-swank ((remoting-configuration remoting-configuration))
-  (with-accessors ((swank-port swank-port)) remoting-configuration
-    (when swank-port
-      (swank:stop-server swank-port)
-      (format t "Stopped swank at port: ~A." swank-port))))
+(defmethod stop-swank ((remoting-configuration actual-remoting-configuration))
+  (with-accessors ((actual-swank-port actual-swank-port)) remoting-configuration
+    (when actual-swank-port
+      (swank:stop-server actual-swank-port)
+      (format t "Stopped swank at port: ~A." actual-swank-port))))

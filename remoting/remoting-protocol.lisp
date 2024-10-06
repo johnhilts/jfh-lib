@@ -9,8 +9,17 @@
     :initarg :swank-interface))
   (:documentation "Remoting configurations."))
 
+(defclass actual-remoting-configuration (remoting-configuration)
+  ((%actual-swank-port
+    :reader actual-swank-port
+    :initarg :actual-swank-port))
+  (:documentation "The remoting configuration actually used by the app. Can differ from configured default settings."))
+
 (defgeneric make-remoting-configuration (data-store-location)
   (:documentation "Input: data store location. Output: remoting configuration."))
+
+(defgeneric make-actual-remoting-configuration (data-store-location actual-swank-port)
+  (:documentation "Input: default configuration settings. Output: actual remoting configuration."))
 
 (defgeneric save-remoting-configuration (remoting-configuration data-store-location)
   (:documentation "Input: remoting-configuration and data store location. Output: remoting configuration serialized into a plist."))
