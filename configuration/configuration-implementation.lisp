@@ -19,6 +19,6 @@ Output: application-configuration object."
   (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
     (jfh-store:make-instance-from-data-store
      'application-configuration
-     (list :swank-port '? :swank-interface '? :settings-file-path settings-file-path :user-path-root '?)
+     (list :settings-file-path settings-file-path :user-path-root '?)
      nil nil
      (lambda (_ __) (declare (ignore _ __)) "./"))))

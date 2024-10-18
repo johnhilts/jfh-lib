@@ -70,8 +70,3 @@ Output: web-configuration object."
    *static-path-maps*
    :key #'car
    :test #'string=))
-
-(defun web-application-shell ()
-  "Use this to start the web application."
-  (let* ((web-configuration (make-web-configuration)))
-    (setf *web-application* (start-web-app web-configuration))))

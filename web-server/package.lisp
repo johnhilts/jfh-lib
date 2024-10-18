@@ -3,6 +3,8 @@
 (defpackage #:jfh-web-server
   (:use #:common-lisp)
   (:export
+   #:make-web-configuration
+   #:*web-application*
    #:web-application-shell
    #:stop-web-app
    #:web-configuration

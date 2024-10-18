@@ -24,11 +24,14 @@
     :initarg :web-configuration))
   (:documentation "Web application."))
 
+(defgeneric make-web-configuration (data-store-location)
+  (:documentation "Input: data store location. Output: web configuration."))
+
 (defgeneric start-hunchentoot (web-configuration)
-  (:documentation "Input: application-configuration. Start hunchentoot web-server with the provided configuration settings."))
+  (:documentation "Input: web-configuration. Start hunchentoot web-server with the provided configuration settings."))
 
 (defgeneric start-web-app (web-configuration)
-  (:documentation "Input: application-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot, and optionally start swank."))
+  (:documentation "Input: web-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot, and optionally start swank."))
 ;; (documentation 'start-web-app 'function)
 
 (defgeneric stop-hunchentoot (web-application)
@@ -39,7 +42,10 @@
 ;; (documentation 'stop-web-app 'function)
 
 (defgeneric make-web-application (tbnl:easy-ssl-acceptor tbnl:easy-acceptor web-configuration)
-  (:documentation "Input: hunchentoot easy-ssl-acceptor, easy-acceptor, application-configuration (default settings) object. Output web-application object."))
+  (:documentation "Input: hunchentoot easy-ssl-acceptor, easy-acceptor, web-configuration (default settings) object. Output web-application object."))
+
+(defgeneric web-application-shell (web-configuration)
+  (:documentation "Use this to start the web application."))
 
 (defclass ssl-client-cert-acceptor (tbnl:easy-ssl-acceptor) ())
 

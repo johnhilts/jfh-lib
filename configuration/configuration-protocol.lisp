@@ -1,13 +1,7 @@
 (in-package #:jfh-configuration)
 
 (defclass application-configuration ()
-  ((%swank-port
-    :reader swank-port
-    :initarg :swank-port)
-   (%swank-interface
-    :reader swank-interface
-    :initarg :swank-interface)
-   (%settings-file-path
+  ((%settings-file-path
     :reader settings-file-path
     :initarg :settings-file-path)
    (%user-path-root

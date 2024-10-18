@@ -99,6 +99,17 @@
       (format stream
 	      "Hunchentoot SSL Acceptor: ~a, Hunchentoot Acceptor: ~a, Configuration: ~a" hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))))
 
+(defmethod make-web-configuration ((data-store-location jfh-store:data-store-location))
+  "Get configuration info from the file system and hydrate web-configuration object.
+Input: default configuration values.
+Output: web-configuration object."
+  (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
+    (jfh-store:make-instance-from-data-store
+     'web-configuration
+     (list :ssl-port '? :http-port '? :static-root '?)
+     nil nil
+     (lambda (_ __) (declare (ignore _ __)) "./"))))
+
 (defmethod start-hunchentoot ((web-configuration web-configuration))
   "start or re-start the hunchentoot web server"
   (flet ((make-acceptor-instances ()
@@ -144,7 +155,7 @@
   (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))
 
 (defmethod start-web-app ((web-configuration web-configuration))
-  "Input: application-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot."
+  "Input: web-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot."
   (setf tbnl:*session-max-time* (* 24 7 60 60))
   (setf tbnl:*rewrite-for-session-urls* nil)
   (add-static-content-handlers)
@@ -166,6 +177,10 @@
     (stop-hunchentoot-by-http-protocol-type (hunchentoot-ssl-acceptor web-application))))
 
 (defmethod stop-web-app ((web-application web-application))
-  "Input: web-application and application-configuration objects. Output: #:web-app-stopped. This will stop the web application. The HTTP port will be released"
+  "Input: web-application objects. Output: #:web-app-stopped. This will stop the web application. The HTTP port will be released"
   (stop-hunchentoot web-application)
   '#:web-app-stopped)
+
+(defmethod web-application-shell ((web-configuration web-configuration))
+  "Use this to start the web application."
+  (setf *web-application* (start-web-app web-configuration)))
