@@ -57,3 +57,4 @@
 (define-condition cert-file-missing (file-error)
   ()
   (:report (lambda (condition stream) (format stream "Unable to find certificate folder: ~A." (file-error-pathname condition)))))
+

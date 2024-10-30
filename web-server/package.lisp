@@ -11,4 +11,5 @@
    #:static-root
    #:add-static-path-map
    #:define-api-endpoint
-   #:verb))
+   #:verb
+   #:web))

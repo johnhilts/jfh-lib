@@ -6,4 +6,5 @@
    #:make-remoting-configuration
    #:swank-port
    #:start-swank
-   #:stop-swank))
+   #:stop-swank
+   #:remoting))

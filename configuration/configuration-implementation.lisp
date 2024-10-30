@@ -1,24 +1,33 @@
 (in-package #:jfh-configuration)
 
+(defparameter *application-configuration* nil)
+
 (defmethod print-object ((application-configuration application-configuration) stream)
   "Print application configuration."
   (print-unreadable-object (application-configuration stream :type t)
-    (with-accessors ((swank-port swank-port)
-                     (swank-interface swank-interface)
-                     (settings-file-path settings-file-path)
+    (with-accessors ((settings-file-path settings-file-path)
                      (user-path-root user-path-root))
         application-configuration
       (format stream
-	      "~:[~:;Swank Port: ~:*~d~]~:[~:;, Swank Interface: ~:*~a~]~:*~:[~:;, ~]Settings File: ~s, User Path: ~s"
-	      swank-port swank-interface settings-file-path user-path-root))))
+	      "Settings File: ~s, User Path: ~s"
+	       settings-file-path user-path-root))))
 
-(defmethod make-application-configuration ((data-store-location jfh-store:data-store-location))
+(defmethod make-application-configuration ((application-root-path string))
   "Get configuration info from the file system and hydrate application-configuration object.
-Input: default configuration values.
+Input: application root path.
 Output: application-configuration object."
-  (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
-    (jfh-store:make-instance-from-data-store
-     'application-configuration
-     (list :settings-file-path settings-file-path :user-path-root '?)
-     nil nil
-     (lambda (_ __) (declare (ignore _ __)) "./"))))
+  (jfh-store:make-instance-from-data-store
+   'application-configuration
+   (list :settings-file-path application-root-path :user-path-root '?)
+   nil nil
+   (lambda (_ __) (declare (ignore _ __)) application-root-path)))
+
+(defmethod bind-configuration ((type (eql 'application)) &optional application-root-path)
+  "Input: the application root path. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
+  (let ((configuration (make-application-configuration application-root-path)))
+    (setf *application-configuration* configuration)
+    configuration))
+
+(defmethod get-configuration ((type (eql 'app)))
+  "Input: type such as 'app, 'remoting, or 'web. Output: configuration object. Configuration objects are NOT in an inheritance hierarchy."
+  *application-configuration*)

@@ -12,7 +12,7 @@
     :documentation "Example: \"./users/\"")))
 
 (defgeneric get-data-store-location (data-store-location)
-  (:documentation "Input: data store location. *Not* user specific, but the argument can have user-specific information."))
+  (:documentation "Input: data store location, or application root path. *Not* user specific, but the argument can have user-specific information."))
 
 (defgeneric get-user-data-store-location (id data-store-location)
   (:documentation "Input: ID (such as a User ID) and data store location. Output: path."))

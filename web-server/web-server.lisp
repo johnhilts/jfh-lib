@@ -2,6 +2,8 @@
 
 (defvar *web-application*)
 
+(defvar *web-configuration*)
+
 (defparameter *client-cert-missing* nil)
 
 (defparameter *static-path-maps* ())

@@ -6,7 +6,7 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:swank)
+  :depends-on (#:swank #:jfh-configuration)
   :components ((:file package)
                (:file remoting-protocol)
                (:file remoting-implementation)))
