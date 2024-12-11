@@ -187,7 +187,7 @@ Output: web-configuration object."
     (setf *web-configuration* web-configuration)
     web-configuration))
 
-(defmethod get-configuration ((type (eql 'web)))
+(defmethod jfh-configuration:get-configuration ((type (eql 'web)))
   "Input: type such as 'app, 'remoting, or 'web. Output: configuration object. Configuration objects are NOT in an inheritance hierarchy."
   *web-configuration*)
 

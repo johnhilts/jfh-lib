@@ -6,9 +6,15 @@
    #:application-user
    #:application-meta-user
    #:application-secure-user
+   #:application-user-id
+   #:application-user-login
+   #:application-user-api-key
+   #:application-user-fingerprint
    #:user-id
    #:user-login
    #:user-password
+   #:user-api-key
+   #:user-fingerprint
    #:make-application-user
    #:read-user-info
    #:save-user

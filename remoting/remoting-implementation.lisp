@@ -60,7 +60,7 @@ Output: actual-remoting-configuration object."
         (catch 'swank-start
           (let ((actual-port (start-swank-server)))
 	    (format t "Started swank at port: ~A." actual-port)
-            (bind-configuration remoting-configuration actual-port)))))))
+            (jfh-configuration:bind-configuration remoting-configuration actual-port)))))))
 
 (defmethod stop-swank ((remoting-configuration actual-remoting-configuration))
   (with-accessors ((actual-swank-port actual-swank-port)) remoting-configuration
