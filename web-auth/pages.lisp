@@ -18,7 +18,7 @@
   "handle auth success and failure"
   (if authed
       (progn
-        (establish-user-session user-info)
+        (jfh-web-server:fetch-or-create-user-session (make-instance 'jfh-user:application-user-login :user-login (jfh-user:user-login user-info)))
         (on-successful-auth) ;; 'web-app:on-auth-hook
         (tbnl:redirect redirect-back-to)) ;; to test this, need to mock *request* and *acceptor*
       (show-auth-failure)))

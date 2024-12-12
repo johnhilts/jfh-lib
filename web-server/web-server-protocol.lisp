@@ -58,3 +58,5 @@
   ()
   (:report (lambda (condition stream) (format stream "Unable to find certificate folder: ~A." (file-error-pathname condition)))))
 
+(defgeneric fetch-or-create-user-session (user-identifier)
+  (:documentation "Fetch an existing or create a new user session based on the user-identifier."))

@@ -11,5 +11,6 @@
    #:static-root
    #:add-static-path-map
    #:define-api-endpoint
+   #:fetch-or-create-user-session
    #:verb
    #:web))

@@ -1,82 +1,109 @@
 (in-package #:jfh-web-server)
 
 ;; TODO: should this part go into "internal"? #-start-#
-(defmethod tbnl:handle-request :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
+(defmethod tbnl:handle-request-OLD :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
   ;; only putting the fingerprint in session for testing purposes - the real code WILL NOT DO THAT
-  (let ((client-id ;; 'abc-123;;
-          (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
-        (the-session (tbnl:start-session)))
-    (setf (tbnl:session-value 'the-client-key the-session) client-id)
-    (setf (tbnl:session-value 'the-session the-session) "4061893-13726-7450288-41758")
-    ;; (my-log (format nil "ClientID,SessionExpiration,CookieValue~%"))
-    (my-log (format nil "From H-R: ~A,~A~%" (tbnl:session-value 'the-client-key the-session) (tbnl:session-cookie-value the-session))))
-  (when (next-method-p)
-    (call-next-method)))
+  ;; 2024-12-09 - this is specialized to SSL-CLIENT-CERT-ACCEPTOR, so that's how to control whether this method gets invoked in the first place
+  ;; (let ((*break-on-signals* 'error))
+    (let ((client-id ;; 'abc-123;;
+            (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
+          (the-session (tbnl:start-session)))
+      (setf (tbnl:session-value 'the-client-key the-session) client-id)
+      ;; this needs to be replaced with a call to link the fingerprint to a 
+      (setf (tbnl:session-value 'the-session the-session) "me@here.com") ;; "4061893-13726-7450288-41758") 
+      ;; (my-log (format nil "ClientID,SessionExpiration,CookieValue~%"))
+      (my-log (format nil "From H-R: ~A,~A~%" (tbnl:session-value 'the-client-key the-session) (tbnl:session-cookie-value the-session))))
+    (when (next-method-p)
+      (call-next-method)))
+  ;; (break) TODO - why was this here??
+;; )
 
+;; TODO: should this part go into "internal"? #-start-#
+(defmethod tbnl:handle-request :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
+  ;; (let ((*break-on-signals* 'error))
+  (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
+         (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
+    (jfh-web-server:fetch-or-create-user-session user-identifier)
+    (when (next-method-p)
+      (call-next-method)))
+  ;; (break) TODO - why was this here??
+  ;; )
+  )
 (defmethod tbnl:process-connection :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (socket t))
-  (handler-bind
-      ((error
-         (lambda (cond)
-           (format t "Error while processing the connection: ~A - caught by *ME*!" cond)
-           (return-from tbnl:process-connection))))
-    (call-next-method)))
+  ;; (let ((*break-on-signals* 'error))
+    (handler-bind
+        ((error
+           (lambda (cond)
+             (format t "Error while processing the connection: ~A - caught by *ME* in the AROUND method!" cond)
+             (return-from tbnl:process-connection))))
+      (call-next-method))) ;; )
 
 (defmethod tbnl:process-connection :after ((tbnl:*acceptor* ssl-client-cert-acceptor) (socket t))
-  (handler-bind
-      ((error
-         (lambda (cond)
-           (break)
-           (format t "Error while processing the connection: ~A - caught by *ME* in the after method!" cond)
-           (return-from tbnl:process-connection))))
-    (call-next-method)))
+  ;; (let ((*break-on-signals* 'error))
+    (handler-bind
+        ((error
+           (lambda (cond)
+             (break)
+             (format t "Error while processing the connection: ~A - caught by *ME* in the AFTER method!" cond)
+             (return-from tbnl:process-connection))))
+      (call-next-method))) ; )
+
+;; (defparameter *jfh/stolen-acceptor* nil)
 
 (defmethod tbnl:initialize-connection-stream ((acceptor ssl-client-cert-acceptor) stream)
-  ;; attach SSL to the stream if necessary
-  (let ((my-cert-path (get-my-cert-path)))
-    (let ((ctx (cl+ssl:make-context :verify-mode cl+ssl:+ssl-verify-peer+
-                                    :verify-depth 1
-                                    :verify-location (format nil "~Aca.crt" my-cert-path)
-                                    :certificate-chain-file (format nil "~Aca.crt" my-cert-path)
-                                    )))
-      (print "make server stream ...")
-      (cl+ssl:with-global-context (ctx :auto-free-p t)
-        (let ((server-stream (cl+ssl:make-ssl-server-stream
-                              stream
-                              :certificate (format nil "~Aserver.crt" my-cert-path)
-                              :key (format nil "~Aserver.key" my-cert-path))))
-          (setf *client-cert-missing* nil)
-          (handler-bind
-              ((sb-sys:memory-fault-error
-                 (lambda (c)
-                   (format t "~&Error signaled: ~A~%" c)
-                   (format t "~&Error context: ~A~%" (sb-sys:system-condition-context c))
-                   (invoke-restart 'client-cert-missing)))
-               (error ;; OK to remove this clause
-                 (lambda (cond)
-                   (format t "Error while initializing connection stream: ~A" cond)
-                   (return-from tbnl:initialize-connection-stream))))
-            (restart-case
-                (let*
-                    ((client-certificate (cl+ssl:ssl-stream-x509-certificate server-stream))
-                     (client-cert-fingerprint (cl+ssl:certificate-fingerprint client-certificate :sha256))
-                     (certificate-not-before-time (cl+ssl:certificate-not-before-time client-certificate))
-                     (certificate-not-after-time (cl+ssl:certificate-not-after-time client-certificate))
-                     (certificate-subject-common-names (cl+ssl:certificate-subject-common-names client-certificate)))
-                  (format t "~&cert: ~A, ~%fingerprint: ~A~%Not before time: ~A~%Not after time: ~A~%Subject common names: ~A~%"
-                          client-certificate client-cert-fingerprint certificate-not-before-time certificate-not-after-time certificate-subject-common-names))
-              (client-cert-missing ()
-                :report "No client certificate provided by the user."
-                (setf *client-cert-missing* t)
-                nil)))
-          server-stream)))))
+  ;; (let ((*break-on-signals* 'error))
+
+    ;; attach SSL to the stream if necessary
+    (let ((my-cert-path (get-my-cert-path)))
+      (let ((ctx (cl+ssl:make-context :verify-mode cl+ssl:+ssl-verify-peer+
+                                      :verify-depth 1
+                                      :verify-location (format nil "~Aca.crt" my-cert-path)
+                                      :certificate-chain-file (format nil "~Aca.crt" my-cert-path)
+                                      )))
+        ;; (break)
+        (print "make server stream ...")
+        (cl+ssl:with-global-context (ctx :auto-free-p t)
+          (let ((server-stream (cl+ssl:make-ssl-server-stream
+                                stream
+                                :certificate (format nil "~Aserver.crt" my-cert-path)
+                                :key (format nil "~Aserver.key" my-cert-path))))
+            (setf *client-cert-missing* nil) ;; maybe this should be server-cert-missing??
+            (handler-bind
+                ((sb-sys:memory-fault-error
+                   (lambda (c)
+                     (format t "~&Error signaled: ~A~%" c)
+                     (format t "~&Error context: ~A~%" (sb-sys:system-condition-context c))
+                     (invoke-restart 'client-cert-missing)))
+                 (error ;; OK to remove this clause
+                   (lambda (cond)
+                     (format t "Error while initializing connection stream: ~A" cond)
+                     (return-from tbnl:initialize-connection-stream))))
+              (restart-case
+                  (let*
+                      ((client-certificate (cl+ssl:ssl-stream-x509-certificate server-stream))
+                       (client-cert-fingerprint (cl+ssl:certificate-fingerprint client-certificate :sha256))
+                       (certificate-not-before-time (cl+ssl:certificate-not-before-time client-certificate))
+                       (certificate-not-after-time (cl+ssl:certificate-not-after-time client-certificate))
+                       (certificate-subject-common-names (cl+ssl:certificate-subject-common-names client-certificate)))
+                    (format t "~&Client Cert: ~A, ~%fingerprint: ~A~%Not before time: ~A~%Not after time: ~A~%Subject common names: ~A~%"
+                            client-certificate client-cert-fingerprint certificate-not-before-time certificate-not-after-time certificate-subject-common-names)
+                    ;; (let ((user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-cert-fingerprint)))
+                    ;;   (jfh-web-server:fetch-or-create-user-session user-identifier))
+                    )
+                (client-cert-missing ()
+                  :report "No client certificate provided by the user."
+                  (setf *client-cert-missing* t)
+                  nil)))
+            server-stream))))) ;;)
 
 (defmethod tbnl:acceptor-dispatch-request ((acceptor http-to-https-acceptor) request)
-  (if (ssl-port acceptor)
-      (tbnl:redirect (tbnl:request-uri request)
-                     :port (ssl-port acceptor)
-                     :protocol :https)
-      (when (next-method-p)
-        (call-next-method acceptor request))))
+  ;; (let ((*break-on-signals* 'error))
+    (if (ssl-port acceptor)
+        (tbnl:redirect (tbnl:request-uri request)
+                       :port (ssl-port acceptor)
+                       :protocol :https)
+        (when (next-method-p)
+          (call-next-method acceptor request)))) ; )
 
 ;; TODO: should this part go into "internal"? #-end-#
 
