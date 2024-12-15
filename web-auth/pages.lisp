@@ -9,7 +9,7 @@
                        (jfh-user:hash-password password))))) ;; NOTE: AND returns the result of the last form
     (handle-auth-result authed user-info redirect-back-to)))
 
-(tbnl:define-easy-handler (authenticate-cert-handler :uri "/auth-cert") (user-fingerprint redirect-back-to)
+(tbnl:define-easy-handler (authenticate-cert-handler :uri "/auth-cert") (user-fingerprint redirect-back-to) ;; TODO I think we can get rid of this
   (let* ((user-info (jfh-user:get-secure-user-info user-fingerprint))
          (authed (not (null user-info))))
     (handle-auth-result authed user-info redirect-back-to)))

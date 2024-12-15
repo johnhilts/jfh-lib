@@ -1,5 +1,8 @@
 (in-package #:jfh-user-tests)
 
+;; (defclass user-test-request (tbnl:request))
+;; (defclass user-test-acceptor (tbnl:acceptor))
+
 (defun test-user-auth ()
   (let ((jfh-store:*data-store-location* (make-instance 'jfh-store:data-store-location :user-path-root "../../../hokima/users/")))
     (jfh-testing:test-spec :category "User Auth"

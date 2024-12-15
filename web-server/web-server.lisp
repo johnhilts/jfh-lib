@@ -14,7 +14,7 @@
   (with-open-file (out "./log.txt" :direction :output :if-does-not-exist :create :if-exists :append)
     (prin1 string out)))
 
-(defun get-my-cert-path (&optional (default-path "./certs/set5/"))
+(defun get-my-cert-path (&optional (default-path "./certs/set8/"))
   (restart-case (if (probe-file default-path)
                     default-path
                     (error 'cert-file-missing :pathname default-path "Couldn't find certificate path ~S:" default-path))
@@ -30,8 +30,8 @@
       value)))
 
 ;; TODO: should this part go into "internal"? #-end-#
-
-(defun make-web-configuration (&optional (ssl-port nil) (http-port 8080) (static-root ""))
+ 
+(defun make-web-configuration-OLD (&optional (ssl-port nil) (http-port 8080) (static-root "")) ;; TODO - remove
   "Get configuration info from the file system and hydrate web-configuration object.
 Input: default configuration values.
 Output: web-configuration object."

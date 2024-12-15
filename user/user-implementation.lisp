@@ -111,13 +111,15 @@
       (ensure-directories-exist (get-user-path application-user data-store-location))
       (save-application-user application-user data-store-location))))
 
+;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-login string) (data-store-location jfh-store:data-store-location))
   "Input: User ID and app-configuration. Output: user index entry."
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))
          (user-index-file-path (get-user-index-file-path user-path-root))
-	 (user-index (jfh-store:fetch-or-create-data user-index-file-path)))
+	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
     (find-if (lambda (entry) (string= (getf entry :user-login) user-login)) user-index)))
 
+;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-fingerprint simple-vector) (data-store-location jfh-store:data-store-location))
   "Input: User fingerprint and app-configuration. Output: user index entry."
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))

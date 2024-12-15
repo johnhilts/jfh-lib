@@ -143,7 +143,7 @@ Output: web-configuration object."
            (with-accessors ((ssl-port ssl-port) (http-port http-port)) web-configuration
              (values
               ;; TODO: need to add the key paths to configuration!! Then, can we do a "make-instance-from-data-store"?
-              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/set5/server.key" :ssl-certificate-file #P"./certs/set5/server.crt")
+              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/set8/server.key" :ssl-certificate-file #P"./certs/set8/server.crt")
               (make-instance 'http-to-https-acceptor :port http-port :ssl-port ssl-port))))
          (start-hunchentoot-by-http-protocol-type (acceptor-instance acceptor-type) ;; TODO: "acceptor-instance" is redundant!!
            (prog1

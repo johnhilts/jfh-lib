@@ -28,13 +28,14 @@ Output: remoting-configuration object."
      nil nil
      (lambda (_ __) (declare (ignore _ __)) "./"))))
 
-(defmethod make-actual-remoting-configuration ((remoting-configuration remoting-configuration) actual-swank-port)
+(defmethod make-actual-remoting-configuration-OLD ((remoting-configuration remoting-configuration) actual-swank-port)
   "Create actual remoting configuration based on the default settings. Meant to be used by START-SWANK.
 Input: default configuration object.
 Output: actual-remoting-configuration object."
   (with-accessors ((swank-port swank-port) (swank-interface swank-interface)) remoting-configuration
     (make-instance 'actual-remoting-configuration :swank-port swank-port :swank-interface swank-interface :actual-swank-port actual-swank-port)))
 
+;; TODO - do we need this??
 (defmethod save-remoting-configuration ((remoting-configuration remoting-configuration) (data-store-location jfh-store:data-store-location))
   "Input: remoting-configuration and data store location. Output: remoting configuration serialized into a plist."
   (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location

@@ -18,9 +18,10 @@
 (defgeneric make-remoting-configuration (data-store-location)
   (:documentation "Input: data store location. Output: remoting configuration."))
 
-(defgeneric make-actual-remoting-configuration (data-store-location actual-swank-port)
+(defgeneric make-actual-remoting-configuration-OLD (data-store-location actual-swank-port)
   (:documentation "Input: default configuration settings. Output: actual remoting configuration."))
 
+;; TODO - do we need this??
 (defgeneric save-remoting-configuration (remoting-configuration data-store-location)
   (:documentation "Input: remoting-configuration and data store location. Output: remoting configuration serialized into a plist."))
 
