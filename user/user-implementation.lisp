@@ -30,27 +30,53 @@
     (with-accessors ((user-id user-id)) application-user
       (format nil "~A~A/" user-path-root user-id))))
 
-(defmethod get-user-info ((user-login string))
+(defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
   (let* ((user-index-entry (get-user-index-entry user-login jfh-store:*data-store-location*))
          (user-id (getf user-index-entry :user-id)))
     (when user-id
       (user-entry->application-user (read-user-info user-id "user.sexp")))))
 
-(defmethod get-user-info ((user-fingerprint simple-vector))
+(defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."
   (let* ((user-index-entry (get-user-index-entry user-fingerprint jfh-store:*data-store-location*))
          (user-id (getf user-index-entry :user-id)))
     (when user-id
       (user-entry->application-user (read-user-info user-id "user.sexp")))))
 
-(defmethod get-secure-user-info ((user-login string))
+(defmethod get-user-info ((user-login string)) ;; TODO - can we remove this?
+  "Search for user info in file system."
+  (let* ((user-index-entry (get-user-index-entry user-login jfh-store:*data-store-location*))
+         (user-id (getf user-index-entry :user-id)))
+    (when user-id
+      (user-entry->application-user (read-user-info user-id "user.sexp")))))
+
+(defmethod get-user-info ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
+  "Search for user info in file system."
+  (let* ((user-index-entry (get-user-index-entry user-fingerprint jfh-store:*data-store-location*))
+         (user-id (getf user-index-entry :user-id)))
+    (when user-id
+      (user-entry->application-user (read-user-info user-id "user.sexp")))))
+
+(defmethod get-secure-user-info ((user-login application-user-login))
+  "Search for secure user info in file system."
+  (let* ((application-user (get-user-info (user-login user-login))))
+    (when application-user
+      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+
+(defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
+  "Search for secure user info in file system."
+  (let* ((application-user (get-user-info (user-fingerprint user-fingerprint))))
+    (when application-user
+      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+
+(defmethod get-secure-user-info ((user-login string)) ;; TODO - can we remove this?
   "Search for secure user info in file system."
   (let* ((application-user (get-user-info user-login)))
     (when application-user
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
 
-(defmethod get-secure-user-info ((user-fingerprint simple-vector))
+(defmethod get-secure-user-info ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
   "Search for secure user info in file system."
   (let* ((application-user (get-user-info user-fingerprint)))
     (when application-user
@@ -112,7 +138,24 @@
       (save-application-user application-user data-store-location))))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-login string) (data-store-location jfh-store:data-store-location))
+(defmethod get-user-index-entry ((user-login application-user-login) (data-store-location jfh-store:data-store-location))
+  "Input: User ID and app-configuration. Output: user index entry."
+  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+         (user-index-file-path (get-user-index-file-path user-path-root))
+	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
+    (find-if (lambda (entry) (string= (getf entry :user-login) (user-login user-login))) user-index)))
+
+;; TODO add restart so that we have the option to generate the missing user index file
+(defmethod get-user-index-entry ((user-fingerprint application-user-fingerprint) (data-store-location jfh-store:data-store-location))
+  "Input: User fingerprint and app-configuration. Output: user index entry."
+  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+         (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
+	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
+
+    (find-if (lambda (entry) (equalp (getf entry :user-fingerprint) (user-fingerprint user-fingerprint))) user-index)))
+
+;; TODO add restart so that we have the option to generate the missing user index file
+(defmethod get-user-index-entry ((user-login string) (data-store-location jfh-store:data-store-location)) ;; TODO - can we remove this?
   "Input: User ID and app-configuration. Output: user index entry."
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))
          (user-index-file-path (get-user-index-file-path user-path-root))
@@ -120,7 +163,7 @@
     (find-if (lambda (entry) (string= (getf entry :user-login) user-login)) user-index)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-fingerprint simple-vector) (data-store-location jfh-store:data-store-location))
+(defmethod get-user-index-entry ((user-fingerprint simple-vector) (data-store-location jfh-store:data-store-location)) ;; TODO - can we remove this?
   "Input: User fingerprint and app-configuration. Output: user index entry."
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))
          (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))

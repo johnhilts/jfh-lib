@@ -15,4 +15,4 @@
   (let ((session-token (jfh-utility:generate-unique-token)))
     (setf (tbnl:session-value 'the-session) session-token)
     (tbnl:set-cookie (string 'the-session) :value session-token :secure t :http-only t)
-    (setf (gethash session-token *session-user-map*) (jfh-user:user-id (jfh-user::get-user-info user-identifier)))))
+    (setf (gethash session-token *session-user-map*) (jfh-user:user-id (jfh-user:get-user-info user-identifier)))))

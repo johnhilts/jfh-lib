@@ -1,7 +1,7 @@
 (in-package #:jfh-web-server)
 
 ;; TODO: should this part go into "internal"? #-start-#
-(defmethod tbnl:handle-request-OLD :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
+(defmethod tbnl-handle-request-OLD :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
   ;; only putting the fingerprint in session for testing purposes - the real code WILL NOT DO THAT
   ;; 2024-12-09 - this is specialized to SSL-CLIENT-CERT-ACCEPTOR, so that's how to control whether this method gets invoked in the first place
   ;; (let ((*break-on-signals* 'error))
@@ -23,6 +23,7 @@
   ;; (let ((*break-on-signals* 'error))
   (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
          (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
+    (format t "Link fingerprint to session using: ~A" client-id)
     (jfh-web-server:fetch-or-create-user-session user-identifier)
     (when (next-method-p)
       (call-next-method)))
@@ -143,7 +144,7 @@ Output: web-configuration object."
            (with-accessors ((ssl-port ssl-port) (http-port http-port)) web-configuration
              (values
               ;; TODO: need to add the key paths to configuration!! Then, can we do a "make-instance-from-data-store"?
-              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/set8/server.key" :ssl-certificate-file #P"./certs/set8/server.crt")
+              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/set9/server.key" :ssl-certificate-file #P"./certs/set9/server.crt")
               (make-instance 'http-to-https-acceptor :port http-port :ssl-port ssl-port))))
          (start-hunchentoot-by-http-protocol-type (acceptor-instance acceptor-type) ;; TODO: "acceptor-instance" is redundant!!
            (prog1
