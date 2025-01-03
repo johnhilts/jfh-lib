@@ -14,7 +14,7 @@
   (with-open-file (out "./log.txt" :direction :output :if-does-not-exist :create :if-exists :append)
     (prin1 string out)))
 
-(defun get-my-cert-path (&optional (default-path "./certs/set9/"))
+(defun get-my-cert-path (&optional (default-path "./certs/hokima-2025/"))
   (restart-case (if (probe-file default-path)
                     default-path
                     (error 'cert-file-missing :pathname default-path "Couldn't find certificate path ~S:" default-path))

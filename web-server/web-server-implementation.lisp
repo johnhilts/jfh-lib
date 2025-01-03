@@ -27,9 +27,9 @@
     (jfh-web-server:fetch-or-create-user-session user-identifier)
     (when (next-method-p)
       (call-next-method)))
-  ;; (break) TODO - why was this here??
   ;; )
   )
+
 (defmethod tbnl:process-connection :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (socket t))
   ;; (let ((*break-on-signals* 'error))
     (handler-bind
@@ -52,6 +52,7 @@
 ;; (defparameter *jfh/stolen-acceptor* nil)
 
 (defmethod tbnl:initialize-connection-stream ((acceptor ssl-client-cert-acceptor) stream)
+  "This function must return the stream to use. In this method, the stream is associated with CA and server certificates that will recognize client certificates from the same CA."
   ;; (let ((*break-on-signals* 'error))
 
     ;; attach SSL to the stream if necessary
@@ -61,7 +62,6 @@
                                       :verify-location (format nil "~Aca.crt" my-cert-path)
                                       :certificate-chain-file (format nil "~Aca.crt" my-cert-path)
                                       )))
-        ;; (break)
         (print "make server stream ...")
         (cl+ssl:with-global-context (ctx :auto-free-p t)
           (let ((server-stream (cl+ssl:make-ssl-server-stream
@@ -87,10 +87,7 @@
                        (certificate-not-after-time (cl+ssl:certificate-not-after-time client-certificate))
                        (certificate-subject-common-names (cl+ssl:certificate-subject-common-names client-certificate)))
                     (format t "~&Client Cert: ~A, ~%fingerprint: ~A~%Not before time: ~A~%Not after time: ~A~%Subject common names: ~A~%"
-                            client-certificate client-cert-fingerprint certificate-not-before-time certificate-not-after-time certificate-subject-common-names)
-                    ;; (let ((user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-cert-fingerprint)))
-                    ;;   (jfh-web-server:fetch-or-create-user-session user-identifier))
-                    )
+                            client-certificate client-cert-fingerprint certificate-not-before-time certificate-not-after-time certificate-subject-common-names))
                 (client-cert-missing ()
                   :report "No client certificate provided by the user."
                   (setf *client-cert-missing* t)
@@ -144,7 +141,7 @@ Output: web-configuration object."
            (with-accessors ((ssl-port ssl-port) (http-port http-port)) web-configuration
              (values
               ;; TODO: need to add the key paths to configuration!! Then, can we do a "make-instance-from-data-store"?
-              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/set9/server.key" :ssl-certificate-file #P"./certs/set9/server.crt")
+              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/hokima-2025/server.key" :ssl-certificate-file #P"./certs/hokima-2025/server.crt")
               (make-instance 'http-to-https-acceptor :port http-port :ssl-port ssl-port))))
          (start-hunchentoot-by-http-protocol-type (acceptor-instance acceptor-type) ;; TODO: "acceptor-instance" is redundant!!
            (prog1
