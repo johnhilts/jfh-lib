@@ -3,10 +3,9 @@
 
 (defun get-authenticated-user ()
   "Get the authenticated user from server session."
-  ;; (gethash (tbnl:session-value 'the-session) *session-user-map*)
   (let ((the-session (tbnl:start-session)))
     (jfh-web-server::my-log (format nil "From G-A-U: ~A,~A~%" (tbnl:session-value 'jfh-web-server::the-client-key the-session) (tbnl:session-cookie-value the-session)))
-    (tbnl:session-value 'jfh-web-server::the-session the-session)))
+    (tbnl:session-value 'jfh-web-auth:the-session-key the-session)))
 
 (defun validate-signup-parameters (name user-login password confirm-password)
   "Validate the values used to signup a user."

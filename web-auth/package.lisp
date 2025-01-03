@@ -7,7 +7,8 @@
    #:define-protected-page
    #:authenticated-user
    ;; #:use-web-auth
-   #:session-user-map
+   #:session-user-map ;; TODO - remove
+   #:the-session-key
    #:show-auth-failure
    ;; #:logout-page
    #:signup-page
