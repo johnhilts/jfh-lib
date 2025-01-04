@@ -10,6 +10,7 @@
    #:session-user-map ;; TODO - remove
    #:the-session-key
    #:show-auth-failure
+   #:get-certificate-fingerprint-from-file
    ;; #:logout-page
    #:signup-page
    #:login-page

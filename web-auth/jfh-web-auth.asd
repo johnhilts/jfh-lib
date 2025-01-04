@@ -12,4 +12,5 @@
                (:file web-auth-protocol)
                (:file web-auth)
                (:file web-auth-implementation)
+               (:file certificate-util)
                (:file pages)))
