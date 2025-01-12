@@ -86,15 +86,15 @@
     (when application-user
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
 
-(defmethod save-user (file-name user-info-list (application-user application-user) (data-store-location jfh-store:data-store-location))
+(defmethod save-user (file-name user-info-list (application-user application-user) (data-store-location jfh-store:data-store-location)) ;; TODO remove data-store-location from lambda list
   "Input: file-name, user info list (not a class), application-user and data-store-location. Output: user info list. Persist application user info."
-  (let ((user-info-file-path (format nil "~A~A" (get-user-path application-user data-store-location) file-name)))
-    (jfh-store:write-complete-file user-info-file-path user-info-list)))
+  (let ((user-info-file-path (format nil "~A~A" (get-user-path application-user data-store-location) file-name))) ;; TODO path etc will be figured out in jfh-store; only pass the LABEL
+    (jfh-store:write-complete-file user-info-file-path user-info-list))) ;; replace with jfh-store:save-object
 
 (defmethod save-application-user ((application-user application-meta-user) (data-store-location jfh-store:data-store-location))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (let ((file-name "user.sexp")
-        (user-info-list (list
+  (let ((file-name "user.sexp") ;; TODO rename to "label"; remove the ".sexp"
+        (user-info-list (list ;; TODO this should be moved to a mapping file so it's not mixed in with other code
                          :user-id (user-id application-user)
                          :user-login (user-login application-user)
                          :create-date (create-date application-user)
