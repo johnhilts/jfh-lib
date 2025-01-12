@@ -27,3 +27,9 @@
   (with-accessors ((user-path-root user-path-root)) data-store-location
     (format nil "~A~A/" user-path-root user-id)))
 ;; example: (jfh-store::get-user-data-store-location "abc-123" data-store-location)
+
+(defmethod save-index ((data t) index-name)
+  "Input: data and index-name. Index-name will be the main part of the file-name where the index is stored. Output: Not sure yet.")
+
+(defmethod save-data ((data t) name)
+  "Input: data and name; name will be the main part of the file-name where the data is stored. Output: Not sure yet.")

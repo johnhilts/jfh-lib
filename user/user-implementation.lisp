@@ -129,10 +129,16 @@
    :user-id (user-id user-index-entry)
    :user-login (user-login user-index-entry)))
 
+(defun get-user-identifier-class (application-user)
+  "Input: a user object. Output: the class name relevant to which index user file should be used."
+  (typecase application-user
+    (application-user-fingerprint 'application-user-fingerprint) ;; TODO add more types as needed
+    (otherwise nil)))
+
 (defmethod save-new-application-user ((application-user application-meta-user) (data-store-location jfh-store:data-store-location))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
   (let* ((user-path-root (jfh-store:user-path-root data-store-location))
-         (user-index-file-path (get-user-index-file-path user-path-root)))
+         (user-index-file-path (get-user-index-file-path user-path-root (get-user-identifier-class application-user))))
     (flet ((callback (user-index)
              (push (user-index-entry->list (make-user-index-entry application-user)) user-index)
              (jfh-store:write-complete-file user-index-file-path user-index)))

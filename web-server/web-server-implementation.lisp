@@ -19,6 +19,7 @@
 ;; )
 
 ;; TODO: should this part go into "internal"? #-start-#
+;; TODO: whether this even runs should be based on configuration
 (defmethod tbnl:handle-request :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
   ;; (let ((*break-on-signals* 'error))
   (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
