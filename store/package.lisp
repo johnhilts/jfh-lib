@@ -3,6 +3,8 @@
 (defpackage #:jfh-store
   (:use #:common-lisp)
   (:export
+   #:save-index
+   #:save-data
    #:make-instance-from-data-store
    #:write-instance-to-data-store
    #:data-store-location
