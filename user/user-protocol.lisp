@@ -14,6 +14,14 @@
   ((%user-password
     :reader user-password
     :initarg :user-password
+    :initform "")
+   (%user-fingerprint
+    :reader user-fingerprint
+    :initarg :user-fingerprint
+    :initform #())
+   (%user-api-key
+    :reader user-api-key
+    :initarg :user-api-key
     :initform ""))
   (:documentation "Application user secure info."))
 

@@ -3,7 +3,7 @@
 (defun read-complete-file (path)
   "read complete file all at once"
   (let ((*read-eval* nil))
-    (with-open-file (in path :if-does-not-exist :create)
+    (with-open-file (in path :if-does-not-exist :create :direction :input)
       (with-standard-io-syntax
         (read in nil)))))
 

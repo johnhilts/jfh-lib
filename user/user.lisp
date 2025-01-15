@@ -55,7 +55,12 @@
 
 (defun hash-password (plaintext-password)
   "Input: plaintext password. Output: Encrypted password."
-  (ironclad:byte-array-to-hex-string
-   (ironclad:digest-sequence
-    :sha256
-    (ironclad:ascii-string-to-byte-array plaintext-password))))
+  (let ((cipher
+          (ironclad:byte-array-to-hex-string
+           (ironclad:digest-sequence
+            :sha256
+            (ironclad:ascii-string-to-byte-array plaintext-password)))))
+    (coerce
+     (loop for char across cipher
+           collect char)
+     'simple-string)))

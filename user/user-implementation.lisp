@@ -107,7 +107,9 @@
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
   (let ((file-name "hash.sexp")
         (user-info-list (list
-                         :user-password (user-password application-user))))
+                         :user-password (user-password application-user)
+                         :user-fingerprint (user-fingerprint application-user)
+                         :user-api-key (user-api-key application-user))))
     (save-user file-name user-info-list application-user data-store-location)))
 
 (defmethod print-object ((user-index-entry user-index-entry) stream)
