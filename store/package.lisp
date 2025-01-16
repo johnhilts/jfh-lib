@@ -5,6 +5,7 @@
   (:export
    #:save-index
    #:save-data
+   #:make-data-store
    #:make-instance-from-data-store
    #:write-instance-to-data-store
    #:data-store-location

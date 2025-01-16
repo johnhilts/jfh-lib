@@ -38,7 +38,7 @@
 (defun read-user-info (user-id file-name) ;; TODO: do we still need this?? using it in web-app
   "read user info from user-id/user.sexp The guid-like user ID is needed to find the folder."
   (let ((user-info (make-application-user user-id)))
-    (jfh-store:read-complete-file (format nil "~A~A" (get-user-path user-info jfh-store:*data-store-location*) file-name))))
+    (jfh-store:read-complete-file (format nil "~A~A" (get-user-path user-info) file-name))))
 
 (defun get-user-info-OLD (user-login) ;; TODO: remove
   "Search for user info in file system."

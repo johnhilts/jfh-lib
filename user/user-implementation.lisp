@@ -24,9 +24,9 @@
       (format stream
 	      "User ID: ~A, User Login: ~S, Created: ~A, Disabled: ~:[false~;true~]" user-id user-login create-date disable))))
 
-(defmethod get-user-path ((application-user application-user) (data-store-location jfh-store:data-store-location))
+(defmethod get-user-path ((application-user application-user))
   "Input: application-user and app-configuration. Output: user path."
-  (with-accessors ((user-path-root jfh-store:user-path-root)) data-store-location
+  (with-accessors ((user-path-root jfh-store:user-path-root)) jfh-store:*data-store-location*
     (with-accessors ((user-id user-id)) application-user
       (format nil "~A~A/" user-path-root user-id))))
 
@@ -86,12 +86,12 @@
     (when application-user
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
 
-(defmethod save-user (file-name user-info-list (application-user application-user) (data-store-location jfh-store:data-store-location)) ;; TODO remove data-store-location from lambda list
-  "Input: file-name, user info list (not a class), application-user and data-store-location. Output: user info list. Persist application user info."
-  (let ((user-info-file-path (format nil "~A~A" (get-user-path application-user data-store-location) file-name))) ;; TODO path etc will be figured out in jfh-store; only pass the LABEL
-    (jfh-store:write-complete-file user-info-file-path user-info-list))) ;; replace with jfh-store:save-object
+(defmethod save-user (file-name user-info-list (application-user application-user))
+  "Input: file-name, user info list (not a class), application-user. Output: user info list. Persist application user info."
+  (let ((user-info-file-path (format nil "~A~A" (get-user-path application-user) file-name))) ;; TODO change file-name to LABEL
+    (jfh-store:write-complete-file user-info-file-path user-info-list))) ;; replace with jfh-store:save-object; get rid of user-info-file-path because that logic will be in save-object
 
-(defmethod save-application-user ((application-user application-meta-user) (data-store-location jfh-store:data-store-location))
+(defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
   (let ((file-name "user.sexp") ;; TODO rename to "label"; remove the ".sexp"
         (user-info-list (list ;; TODO this should be moved to a mapping file so it's not mixed in with other code
@@ -99,18 +99,18 @@
                          :user-login (user-login application-user)
                          :create-date (create-date application-user)
                          :disable (disable application-user))))
-    (save-user file-name user-info-list application-user data-store-location)
+    (save-user file-name user-info-list application-user)
     (when (next-method-p)
       (call-next-method))))
 
-(defmethod save-application-user ((application-user application-secure-user) (data-store-location jfh-store:data-store-location))
+(defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
   (let ((file-name "hash.sexp")
         (user-info-list (list
                          :user-password (user-password application-user)
                          :user-fingerprint (user-fingerprint application-user)
                          :user-api-key (user-api-key application-user))))
-    (save-user file-name user-info-list application-user data-store-location)))
+    (save-user file-name user-info-list application-user)))
 
 (defmethod print-object ((user-index-entry user-index-entry) stream)
   "Print user index entry."
@@ -137,17 +137,17 @@
     (application-user-fingerprint 'application-user-fingerprint) ;; TODO add more types as needed
     (otherwise nil)))
 
-(defmethod save-new-application-user ((application-user application-meta-user) (data-store-location jfh-store:data-store-location))
+(defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
-  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO move all path related stuff to JFH-STORE:SAVE-OBJECT
          (user-index-file-path (get-user-index-file-path user-path-root (get-user-identifier-class application-user))))
     (flet ((callback (user-index)
              (push (user-index-entry->list (make-user-index-entry application-user)) user-index)
              (jfh-store:write-complete-file user-index-file-path user-index)))
       (ensure-directories-exist user-path-root)
       (jfh-store:fetch-or-create-data user-index-file-path #'callback)
-      (ensure-directories-exist (get-user-path application-user data-store-location))
-      (save-application-user application-user data-store-location))))
+      (ensure-directories-exist (get-user-path application-user))
+      (save-application-user application-user))))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-id application-user-id) (data-store-location jfh-store:data-store-location)) ;; TODO probably don't need this - if we already have the user ID why would we need to bother with the index?
