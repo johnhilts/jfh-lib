@@ -43,7 +43,7 @@
 
 (defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-fingerprint jfh-store:*data-store-location*))
+  (let* ((user-index-entry (get-user-index-entry user-fingerprint))
          (user-id (getf user-index-entry :user-id)))
     (when user-id
       (user-entry->application-user (read-user-info user-id "user.sexp")))))
@@ -150,42 +150,42 @@
       (save-application-user application-user))))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-id application-user-id) (data-store-location jfh-store:data-store-location)) ;; TODO probably don't need this - if we already have the user ID why would we need to bother with the index?
+(defmethod get-user-index-entry ((user-id application-user-id)) ;; TODO probably don't need this - if we already have the user ID why would we need to bother with the index?
   "Input: User ID and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
          (user-index-file-path (get-user-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
     (find-if (lambda (entry) (string= (getf entry :user-id) (user-id user-id))) user-index)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-login application-user-login) (data-store-location jfh-store:data-store-location))
+(defmethod get-user-index-entry ((user-login application-user-login))
   "Input: User Login and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
          (user-index-file-path (get-user-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
     (find-if (lambda (entry) (string= (getf entry :user-login) (user-login user-login))) user-index)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-fingerprint application-user-fingerprint) (data-store-location jfh-store:data-store-location))
+(defmethod get-user-index-entry ((user-fingerprint application-user-fingerprint))
   "Input: User fingerprint and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
          (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
 
     (find-if (lambda (entry) (equalp (getf entry :user-fingerprint) (user-fingerprint user-fingerprint))) user-index)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-login string) (data-store-location jfh-store:data-store-location)) ;; TODO - can we remove this?
+(defmethod get-user-index-entry ((user-login string)) ;; TODO - can we remove this?
   "Input: User ID and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
          (user-index-file-path (get-user-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
     (find-if (lambda (entry) (string= (getf entry :user-login) user-login)) user-index)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-fingerprint simple-vector) (data-store-location jfh-store:data-store-location)) ;; TODO - can we remove this?
+(defmethod get-user-index-entry ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
   "Input: User fingerprint and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root data-store-location))
+  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
          (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
 	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
 
