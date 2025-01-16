@@ -61,7 +61,7 @@ Output: actual-remoting-configuration object."
         (catch 'swank-start
           (let ((actual-port (start-swank-server)))
 	    (format t "Started swank at port: ~A." actual-port)
-            (jfh-configuration:bind-configuration remoting-configuration actual-port)))))))
+            (jfh-configuration:rebind-configuration remoting-configuration actual-port)))))))
 
 (defmethod stop-swank ((remoting-configuration actual-remoting-configuration))
   (with-accessors ((actual-swank-port actual-swank-port)) remoting-configuration
@@ -69,14 +69,14 @@ Output: actual-remoting-configuration object."
       (swank:stop-server actual-swank-port)
       (format t "Stopped swank at port: ~A." actual-swank-port))))
 
-(defmethod jfh-configuration:bind-configuration ((type (eql 'remoting)) &optional (data-store-location jfh-store:*data-store-location*))
+(defmethod jfh-configuration:bind-configuration ((type (eql 'remoting)))
   "Input: the type, remoting. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
-  (let ((remoting-configuration (make-remoting-configuration data-store-location)))
+  (let ((remoting-configuration (make-remoting-configuration jfh-store:*data-store-location*))) ;; TODO - move path related concerns to jfh-store
     (setf *remoting-configuration* remoting-configuration)
     remoting-configuration))
 
-(defmethod jfh-configuration:bind-configuration ((default-remoting-configuration remoting-configuration) &optional actual-swank-port)
-  "Input: the default remoting configuration. Output: the actual remoting configuration object. Configuration objects are NOT in an inheritance hierarchy."
+(defmethod jfh-configuration:rebind-configuration ((default-remoting-configuration remoting-configuration) actual-swank-port)
+  "Input: the default remoting configuration, and the actual swank port. Output: the actual remoting configuration object. Configuration objects are NOT in an inheritance hierarchy."
   (with-accessors ((swank-port swank-port) (swank-interface swank-interface)) default-remoting-configuration
     (let ((actual-remoting-configuration
             (make-instance 'actual-remoting-configuration :swank-port swank-port :swank-interface swank-interface :actual-swank-port actual-swank-port)))

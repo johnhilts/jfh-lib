@@ -10,4 +10,5 @@
    #:settings-file-path
    #:user-path-root
    #:bind-configuration
+   #:rebind-configuration
    #:get-configuration))

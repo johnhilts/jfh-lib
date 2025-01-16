@@ -13,8 +13,12 @@
 (defgeneric make-application-configuration (data-store-location)
   (:documentation "Input: data store location. Output: application configuration."))
 
-(defgeneric bind-configuration (type-or-default &optional data-store)
-  (:documentation "Input: Either a type such as 'remoting or 'web, OR a string for the default root path, or a configuration object pre-loaded with default values.
+(defgeneric bind-configuration (type)
+  (:documentation "Input: a type such as 'remoting or 'web, OR a string for the default root path.
+Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."))
+
+(defgeneric rebind-configuration (default-settings configuration-value)
+  (:documentation "Input: a configuration object pre-loaded with default values, and a configuration value.
 Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."))
 
 (defgeneric get-configuration (type)

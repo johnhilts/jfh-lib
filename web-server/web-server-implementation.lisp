@@ -207,9 +207,9 @@ Output: web-configuration object."
   (stop-hunchentoot web-application)
   '#:web-app-stopped)
 
-(defmethod jfh-configuration:bind-configuration ((type (eql 'web)) &optional (data-store-location jfh-store:*data-store-location*))
+(defmethod jfh-configuration:bind-configuration ((type (eql 'web)))
   "Input: the type, web. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
-  (let ((web-configuration (make-web-configuration data-store-location)))
+  (let ((web-configuration (make-web-configuration jfh-store:*data-store-location*))) ;; TODO - move path related concerns to jfh-store
     (setf *web-configuration* web-configuration)
     web-configuration))
 
