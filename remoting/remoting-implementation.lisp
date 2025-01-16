@@ -75,7 +75,7 @@ Output: actual-remoting-configuration object."
     (setf *remoting-configuration* remoting-configuration)
     remoting-configuration))
 
-(defmethod jfh-configuration:bind-configuration ((default-remoting-configuration remoting-configuration) &optional (actual-swank-port integer))
+(defmethod jfh-configuration:bind-configuration ((default-remoting-configuration remoting-configuration) &optional actual-swank-port)
   "Input: the default remoting configuration. Output: the actual remoting configuration object. Configuration objects are NOT in an inheritance hierarchy."
   (with-accessors ((swank-port swank-port) (swank-interface swank-interface)) default-remoting-configuration
     (let ((actual-remoting-configuration
