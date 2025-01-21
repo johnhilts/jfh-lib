@@ -17,17 +17,6 @@
       (format stream "Actual Swank Port: ~D, " actual-swank-port)
       (call-next-method))))
 
-(defmethod make-remoting-configuration ((data-store-location jfh-store:data-store-location))
-  "Get configuration info from the file system and hydrate remoting-configuration object.
-Input: default configuration values.
-Output: remoting-configuration object."
-  (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
-    (jfh-store:make-instance-from-data-store
-     'remoting-configuration
-     (list :swank-port '? :swank-interface '?)
-     nil nil
-     (lambda (_ __) (declare (ignore _ __)) "./"))))
-
 (defmethod make-actual-remoting-configuration-OLD ((remoting-configuration remoting-configuration) actual-swank-port)
   "Create actual remoting configuration based on the default settings. Meant to be used by START-SWANK.
 Input: default configuration object.
@@ -71,7 +60,7 @@ Output: actual-remoting-configuration object."
 
 (defmethod jfh-configuration:bind-configuration ((type (eql 'remoting)))
   "Input: the type, remoting. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
-  (let ((remoting-configuration (make-remoting-configuration jfh-store:*data-store-location*))) ;; TODO - move path related concerns to jfh-store
+  (let ((remoting-configuration (make-remoting-configuration)))
     (setf *remoting-configuration* remoting-configuration)
     remoting-configuration))
 

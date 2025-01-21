@@ -1,7 +1,10 @@
 (in-package #:jfh-store)
 
 (defparameter *data-store-location* nil)
-;; (setf *data-store-location* (make-instance 'data-store-location :settings-file-path "./" :user-path-root "./users/"))
+;; (setf *data-store-location* (make-data-store))
+
+(defparameter *data-path* nil)
+(defparameter *index-path* nil)
 
 (defun make-data-store (&optional (app-root "./"))
   (make-instance 'jfh-store:data-store-location :user-path-root (format nil "~A/users/" app-root) :settings-file-path app-root))

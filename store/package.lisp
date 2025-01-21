@@ -15,4 +15,6 @@
    #:fetch-or-create-data
    #:write-complete-file
    #:read-complete-file
+   #:*data-path*
+   #:*index-path*
    #:*data-store-location*))

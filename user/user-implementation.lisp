@@ -36,7 +36,7 @@
 
 (defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-login jfh-store:*data-store-location*))
+  (let* ((user-index-entry (get-user-index-entry user-login))
          (user-id (getf user-index-entry :user-id)))
     (when user-id
       (user-entry->application-user (read-user-info user-id "user.sexp")))))
@@ -50,14 +50,14 @@
 
 (defmethod get-user-info ((user-login string)) ;; TODO - can we remove this?
   "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-login jfh-store:*data-store-location*))
+  (let* ((user-index-entry (get-user-index-entry user-login))
          (user-id (getf user-index-entry :user-id)))
     (when user-id
       (user-entry->application-user (read-user-info user-id "user.sexp")))))
 
 (defmethod get-user-info ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
   "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-fingerprint jfh-store:*data-store-location*))
+  (let* ((user-index-entry (get-user-index-entry user-fingerprint))
          (user-id (getf user-index-entry :user-id)))
     (when user-id
       (user-entry->application-user (read-user-info user-id "user.sexp")))))
@@ -86,10 +86,9 @@
     (when application-user
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
 
-(defmethod save-user (file-name user-info-list (application-user application-user))
-  "Input: file-name, user info list (not a class), application-user. Output: user info list. Persist application user info."
-  (let ((user-info-file-path (format nil "~A~A" (get-user-path application-user) file-name))) ;; TODO change file-name to LABEL
-    (jfh-store:write-complete-file user-info-file-path user-info-list))) ;; replace with jfh-store:save-object; get rid of user-info-file-path because that logic will be in save-object
+(defmethod save-user (label user-info-list (application-user application-user))
+  "Input: data label, user info list (not a class), application-user. Output: user info list. Persist application user info."
+  (jfh-store:save-data user-info-list label (user-id application-user)))
 
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
@@ -137,6 +136,7 @@
     (application-user-fingerprint 'application-user-fingerprint) ;; TODO add more types as needed
     (otherwise nil)))
 
+;; TODO - do this *** NEXT ***
 (defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
   (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO move all path related stuff to JFH-STORE:SAVE-OBJECT

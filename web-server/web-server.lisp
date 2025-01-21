@@ -31,23 +31,6 @@
 
 ;; TODO: should this part go into "internal"? #-end-#
  
-(defun make-web-configuration-OLD (&optional (ssl-port nil) (http-port 8080) (static-root "")) ;; TODO - remove
-  "Get configuration info from the file system and hydrate web-configuration object.
-Input: default configuration values.
-Output: web-configuration object."
-  (let* ((data-store-location jfh-store:*data-store-location*)
-         (call-back #'(lambda (settings)
-			(if settings
-			    (make-instance 'web-configuration
-					   :ssl-port (getf settings :ssl-port)
-					   :http-port (getf settings :http-port)
-					   :static-root (getf settings :static-root))
-	                    (make-instance 'web-configuration
-					   :ssl-port ssl-port
-					   :http-port http-port
-					   :static-root static-root)))))
-    (jfh-store:fetch-or-create-data (jfh-store:settings-file-path data-store-location) call-back)))
-
 (defun %make-web-application-core (hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration)
   "Constructor for web-application"
   (make-instance 'web-application

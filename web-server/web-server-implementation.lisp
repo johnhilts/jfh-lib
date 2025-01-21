@@ -125,16 +125,15 @@
       (format stream
 	      "Hunchentoot SSL Acceptor: ~a, Hunchentoot Acceptor: ~a, Configuration: ~a" hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))))
 
-(defmethod make-web-configuration ((data-store-location jfh-store:data-store-location))
+(defun make-web-configuration () ;; move to web-server.lisp
   "Get configuration info from the file system and hydrate web-configuration object.
 Input: default configuration values.
 Output: web-configuration object."
-  (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
-    (jfh-store:make-instance-from-data-store
-     'web-configuration
-     (list :ssl-port '? :http-port '? :static-root '?)
-     nil nil
-     (lambda (_ __) (declare (ignore _ __)) "./"))))
+  (jfh-store:make-instance-from-data-store
+   'web-configuration
+   (list :ssl-port '? :http-port '? :static-root '?)
+   nil nil
+   (lambda (_ __) (declare (ignore _ __)) "./")))
 
 (defmethod start-hunchentoot ((web-configuration web-configuration))
   "start or re-start the hunchentoot web server"
@@ -209,7 +208,7 @@ Output: web-configuration object."
 
 (defmethod jfh-configuration:bind-configuration ((type (eql 'web)))
   "Input: the type, web. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
-  (let ((web-configuration (make-web-configuration jfh-store:*data-store-location*))) ;; TODO - move path related concerns to jfh-store
+  (let ((web-configuration (make-web-configuration)))
     (setf *web-configuration* web-configuration)
     web-configuration))
 

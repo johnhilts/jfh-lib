@@ -24,9 +24,6 @@
     :initarg :web-configuration))
   (:documentation "Web application."))
 
-(defgeneric make-web-configuration (data-store-location)
-  (:documentation "Input: data store location. Output: web configuration."))
-
 (defgeneric start-hunchentoot (web-configuration)
   (:documentation "Input: web-configuration. Start hunchentoot web-server with the provided configuration settings."))
 

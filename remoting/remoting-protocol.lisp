@@ -15,9 +15,6 @@
     :initarg :actual-swank-port))
   (:documentation "The remoting configuration actually used by the app. Can differ from configured default settings."))
 
-(defgeneric make-remoting-configuration (data-store-location)
-  (:documentation "Input: data store location. Output: remoting configuration."))
-
 (defgeneric make-actual-remoting-configuration-OLD (data-store-location actual-swank-port)
   (:documentation "Input: default configuration settings. Output: actual remoting configuration."))
 

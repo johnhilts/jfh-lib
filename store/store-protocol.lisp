@@ -20,5 +20,5 @@
 (defgeneric save-index (data index-name)
   (:documentation "Input: data and index-name. Index-name shouldn't assume the type of persistence, that will be filled in with the method. Output: defined by method."))
 
-(defgeneric save-data (data name)
-  (:documentation "Input: data and name; name is like a label to associate with the data. Name shouldn't assume the type of persistence, that will be filled in with the method. Output: defined by method."))
+(defgeneric save-data (data name key)
+  (:documentation "Input: data and name key; name is like a label to associate with the data. Name shouldn't assume the type of persistence, that will be filled in with the method. The key is like a unique ID to help keep data separated. Output: defined by method."))

@@ -31,5 +31,7 @@
 (defmethod save-index ((data t) index-name)
   "Input: data and index-name. Index-name will be the main part of the file-name where the index is stored. Output: Not sure yet.")
 
-(defmethod save-data ((data t) name)
-  "Input: data and name; name will be the main part of the file-name where the data is stored. Output: Not sure yet.")
+(defmethod save-data ((data t) name key)
+  "Input: data and name; name will be the main part of the file-name where the data is stored. Output: Not sure yet."
+  (let ((file-name (format nil "~A~A/~A.sexp" *data-path* key name)))
+    (jfh-store:write-complete-file file-name data)))
