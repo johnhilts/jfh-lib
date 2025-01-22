@@ -3,8 +3,9 @@
 (defparameter *data-store-location* nil)
 ;; (setf *data-store-location* (make-data-store))
 
-(defparameter *data-path* nil)
-(defparameter *index-path* nil)
+
+(defvar *store-root-folder* "./"
+  "Root folder to store data.")
 
 (defun make-data-store (&optional (app-root "./"))
   (make-instance 'jfh-store:data-store-location :user-path-root (format nil "~A/users/" app-root) :settings-file-path app-root))

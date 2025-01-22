@@ -11,6 +11,51 @@
     :initform (error "Value required for :user-path-root")
     :documentation "Example: \"./users/\"")))
 
+(defclass file-store-location ()
+  ((%location
+    :reader location
+    :initarg :location
+    :initform "."
+    :documentation "Flat file root directory.")))
+
+(defclass database-store-location ()
+  ((%host
+    :reader host
+    :initarg :host
+    :initform "."
+    :documentation "Database server.")
+   (%location
+    :reader location
+    :initform "DB cataglog name"
+    :documentation "DB catalog.")))
+
+(defclass user-data-store-location (file-store-location)
+  ((%location
+    :initarg :location
+    :initform "./users"))) ;; put this in a dynamic variable?
+
+(defclass data-store ()
+  ((%label
+    :reader label
+    :initarg :label
+    :documentation "DB table name, file name")
+   (%key
+    :reader key
+    :initarg :key
+    :documentation "field(s) used for indexing")))
+
+(defclass store-object (file-store-location data-store)
+  ()
+  (:documentation "fields set by app"))
+
+(defclass user-store-object (user-data-store-location store-object)
+  ()
+  (:documentation "fields set by app"))
+
+(defclass user-index-store-object (user-store-object)
+  ()
+  (:documentation "fields set by app"))
+
 (defgeneric get-data-store-location (data-store-location)
   (:documentation "Input: data store location, or application root path. *Not* user specific, but the argument can have user-specific information."))
 
@@ -22,3 +67,17 @@
 
 (defgeneric save-data (data name key)
   (:documentation "Input: data and name key; name is like a label to associate with the data. Name shouldn't assume the type of persistence, that will be filled in with the method. The key is like a unique ID to help keep data separated. Output: defined by method."))
+
+(defgeneric get-data (store-object))
+
+(defgeneric save-user-data (store-object data))
+
+(defgeneric internal/get-data-by-location (location store-object))
+
+(defgeneric internal/save-data-by-location (location store-object data))
+
+(defgeneric serialize-object->list (object accessors)
+  (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))
+
+(defgeneric serialize-object (object serialization-type)
+  (:documentation "Input: an object and its serialization-type - currently only plist supported. Output: result of SERIALIZE-OBJECT->LIST. Meant to be used for data with 1 row."))

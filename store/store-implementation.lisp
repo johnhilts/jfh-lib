@@ -35,3 +35,39 @@
   "Input: data and name; name will be the main part of the file-name where the data is stored. Output: Not sure yet."
   (let ((file-name (format nil "~A~A/~A.sexp" *data-path* key name)))
     (jfh-store:write-complete-file file-name data)))
+
+(defmethod internal/get-data-by-location ((_ file-store-location) (store-object store-object))
+  (let ((file-path (format nil "~A/~A.sexp" (location store-object) (label store-object))))
+    file-path))
+
+(defmethod internal/get-data-by-location ((_ file-store-location) (store-object user-store-object))
+  (let ((file-path (format nil "~A/~A/~A.sexp" (location store-object) (key store-object) (label store-object))))
+    file-path))
+
+(defmethod internal/get-data-by-location ((_ file-store-location) (store-object user-index-store-object))
+  (let ((file-path (format nil "~A/~A.sexp" (location store-object) (label store-object))))
+    (fetch-or-create-data file-path)))
+
+(defmethod internal/save-data-by-location ((_ file-store-location) (store-object user-store-object) data)
+  (let ((file-path (format nil "~A/~A/~A.sexp" (location store-object) (key store-object) (label store-object))))
+    (ensure-directories-exist (format nil "~A/~A/" (location store-object) (key store-object)))
+    (jfh-store:write-complete-file file-path data)))
+
+(defmethod internal/save-data-by-location ((_ file-store-location) (store-object user-index-store-object) data)
+  (let ((file-contents (get-data store-object))
+        (file-path (format nil "~A/~A.sexp" (location store-object) (label store-object))))
+    (jfh-store:write-complete-file file-path (push data file-contents))))
+
+(defmethod get-data ((store-object store-object))
+  (internal/get-data-by-location store-object store-object))
+
+(defmethod save-user-data ((store-object store-object) data)
+  (internal/save-data-by-location store-object store-object data))
+
+(defmethod serialize-object->list ((object t) accessors) ;; TODO change name to ->PLIST
+  "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."
+  (loop for accessor in accessors
+        nconc
+        (list
+         (intern (string accessor) (find-package 'keyword))
+         (funcall accessor object))))

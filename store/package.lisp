@@ -3,8 +3,16 @@
 (defpackage #:jfh-store
   (:use #:common-lisp)
   (:export
+   #:*store-root-folder*
+   #:store-object
+   #:user-store-object
+   #:user-index-store-object
+   #:get-data
+   #:save-user-data
    #:save-index
    #:save-data
+   #:serialize-object->list
+   #:serialize-object
    #:make-data-store
    #:make-instance-from-data-store
    #:write-instance-to-data-store
