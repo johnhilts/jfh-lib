@@ -78,6 +78,3 @@
 
 (defgeneric serialize-object->list (object accessors)
   (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))
-
-(defgeneric serialize-object (object serialization-type)
-  (:documentation "Input: an object and its serialization-type - currently only plist supported. Output: result of SERIALIZE-OBJECT->LIST. Meant to be used for data with 1 row."))

@@ -92,7 +92,7 @@
 
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (let ((data (jfh-store:serialize-object application-user 'application-meta-user))
+  (let ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
         (user-store-object (make-instance 'jfh-store:user-store-object :label "user" :key (user-id application-user) :location (format nil "~A/users" jfh-store:*store-root-folder*))))
     (jfh-store:save-user-data user-store-object data)
     (when (next-method-p)
@@ -100,7 +100,7 @@
 
 (defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (let ((data (jfh-store:serialize-object application-user 'application-secure-user))
+  (let ((data (jfh-store:serialize-object->list application-user (list 'user-password 'user-fingerprint 'user-api-key)))
         (user-store-object (make-instance 'jfh-store:user-store-object :label "hash" :key (user-id application-user) :location (format nil "~A/users" jfh-store:*store-root-folder*))))
     (jfh-store:save-user-data user-store-object data)))
 
