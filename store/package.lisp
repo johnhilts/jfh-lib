@@ -5,6 +5,7 @@
   (:export
    #:*store-root-folder*
    #:store-object
+   #:store-data
    #:user-store-object
    #:user-index-store-object
    #:get-data

@@ -101,9 +101,9 @@
 ;; TODO we can put the save-application-user methods into a "user-data.lisp" and just have all the logic there
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (let ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable))))
-    ;; TODO - instead of making user-store-object here, just give the pieces needed; the rest can be put together in a STORE function
-    (jfh-store::save-user-data-NEW data 'jfh-store::file :label "user" :key (user-id application-user))
+  (let* ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
+         (store-data (make-instance 'jfh-store:store-data :data data)))
+    (jfh-store::save-user-data store-data :label "user" :key (user-id application-user))
     (when (next-method-p)
       (call-next-method))))
 
