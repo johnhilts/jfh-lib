@@ -44,6 +44,36 @@
     :initarg :key
     :documentation "field(s) used for indexing")))
 
+(defclass store-database ()
+  ((%data
+    :reader data
+    :initarg :data
+    :documentation "Data to persist.")))
+
+(defclass store-file ()
+  ((%data
+    :reader data
+    :initarg :data
+    :documentation "Data to persist.")
+   (%label
+    :reader label
+    :initarg :label
+    :documentation "Place to store data.")
+   (%key
+    :reader key
+    :initarg :key
+    :documentation "Identifier for data.")))
+
+(defclass store-data (store-file)
+  ())
+
+(defclass user-store-data (store-data)
+  ())
+
+(defclass user-index-store-data (store-data)
+  ())
+
+;; TODO you can't name a class with "object"
 (defclass store-object (file-store-location data-store)
   ()
   (:documentation "fields set by app"))
@@ -70,11 +100,11 @@
 
 (defgeneric get-data (store-object))
 
-(defgeneric save-user-data (data location &key label key))
+(defgeneric save-user-data (store-data))
 
 (defgeneric internal/get-data-by-location (location store-object))
 
-(defgeneric internal/save-data-by-location (store data location))
+(defgeneric internal/save-data-by-location (store data))
 
 (defgeneric serialize-object->list (object accessors)
   (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))

@@ -90,7 +90,7 @@
   "Input: data label, user info list (not a class), application-user. Output: user info list. Persist application user info."
   (jfh-store:save-data user-info-list label (user-id application-user)))
 
-(defmethod save-application-user ((application-user application-meta-user))
+(defmethod save-application-user-OLD ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
   (let ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
         (user-store-object (make-instance 'jfh-store:user-store-object :label "user" :key (user-id application-user) :location (format nil "~A/users" jfh-store:*store-root-folder*))))
@@ -102,8 +102,8 @@
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
   (let* ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
-         (store-data (make-instance 'jfh-store:store-data :data data)))
-    (jfh-store::save-user-data store-data :label "user" :key (user-id application-user))
+         (store-data (make-instance 'jfh-store:user-store-data :data data :label "user" :key (user-id application-user))))
+    (jfh-store:save-user-data store-data)
     (when (next-method-p)
       (call-next-method))))
 
@@ -138,11 +138,19 @@
     (application-user-fingerprint 'application-user-fingerprint) ;; TODO add more types as needed
     (otherwise nil)))
 
-(defmethod save-new-application-user ((application-user application-meta-user))
+(defmethod save-new-application-user-OLD ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
   (let ((index-store-object (make-instance 'jfh-store:user-index-store-object :label "user-login-index" :location (format nil "~A/users" jfh-store:*store-root-folder*)))) ;; TODO - set location in :after method
     (jfh-store:save-user-data index-store-object (user-index-entry->list (make-user-index-entry application-user)))
     (save-application-user application-user)))
+
+(defmethod save-new-application-user ((application-user application-meta-user))
+  "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
+  (let* ((data (jfh-store:serialize-object->list (make-user-index-entry application-user) (list 'user-id 'user-login)))
+           ;; (user-index-entry->list (make-user-index-entry application-user)))
+         (store-data (make-instance 'jfh-store:user-index-store-data :data data :label "user-login-index")))
+    (jfh-store:save-user-data store-data))
+  (save-application-user application-user)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-id application-user-id)) ;; TODO probably don't need this - if we already have the user ID why would we need to bother with the index?

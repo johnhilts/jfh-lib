@@ -6,6 +6,8 @@
    #:*store-root-folder*
    #:store-object
    #:store-data
+   #:user-store-data
+   #:user-index-store-data
    #:user-store-object
    #:user-index-store-object
    #:get-data

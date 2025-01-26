@@ -48,30 +48,34 @@
   (let ((file-path (format nil "~A/~A.sexp" (location store-object) (label store-object))))
     (fetch-or-create-data file-path)))
 
-(defmethod internal/save-data-by-location ((_ file-store-location) (store-object user-store-object) data)
+(defmethod internal/save-data-by-location-OLD ((_ file-store-location) (store-object user-store-object) data)
   (let ((file-path (format nil "~A/~A/~A.sexp" (location store-object) (key store-object) (label store-object))))
     (ensure-directories-exist (format nil "~A/~A/" (location store-object) (key store-object)))
     (jfh-store:write-complete-file file-path data)))
 
-(defmethod internal/save-data-by-location-NEW ((store-object user-store-object) data (location (eql 'file)))
+(defmethod internal/save-data-by-location ((store-object user-store-object) (store-data store-data))
   (let ((file-path (format nil "~A/~A/~A.sexp" (location store-object) (key store-object) (label store-object))))
     (ensure-directories-exist (format nil "~A/~A/" (location store-object) (key store-object)))
-    (jfh-store:write-complete-file file-path data)))
+    (jfh-store:write-complete-file file-path (data store-data))))
 
-(defmethod internal/save-data-by-location ((_ file-store-location) (store-object user-index-store-object) data)
+(defmethod internal/save-data-by-location ((store-object user-index-store-object) (store-data store-data))
   (let ((file-contents (get-data store-object))
         (file-path (format nil "~A/~A.sexp" (location store-object) (label store-object))))
-    (jfh-store:write-complete-file file-path (push data file-contents))))
+    (jfh-store:write-complete-file file-path (push (data store-data) file-contents))))
 
 (defmethod get-data ((store-object store-object))
   (internal/get-data-by-location store-object store-object))
 
-(defmethod save-user-data ((store-object store-object) data)
+(defmethod save-user-data-OLD ((store-object store-object) data)
   (internal/save-data-by-location store-object store-object data))
 
-(defmethod save-user-data-NEW (data (location (eql 'file)) &key label key)
-  (let ((store (make-instance 'jfh-store:user-store-object :label label :key key :location (format nil "~A/users" *store-root-folder*))))
-    (internal/save-data-by-location-NEW store data 'file)))
+(defmethod save-user-data ((store-data user-store-data))
+  (let ((store (make-instance 'jfh-store:user-store-object :label (label store-data) :key (key store-data) :location (format nil "~A/users" *store-root-folder*))))
+    (internal/save-data-by-location store store-data)))
+
+(defmethod save-user-data ((store-data user-index-store-data))
+  (let ((store (make-instance 'jfh-store:user-index-store-object :label (label store-data) :location (format nil "~A/users" *store-root-folder*))))
+    (internal/save-data-by-location store store-data)))
 
 (defmethod serialize-object->list ((object t) accessors) ;; TODO change name to ->PLIST
   "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."
