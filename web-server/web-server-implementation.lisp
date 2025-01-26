@@ -48,7 +48,8 @@
              (break)
              (format t "Error while processing the connection: ~A - caught by *ME* in the AFTER method!" cond)
              (return-from tbnl:process-connection))))
-      (call-next-method))) ; )
+      (when (next-method-p)
+        (call-next-method)))) ; )
 
 ;; (defparameter *jfh/stolen-acceptor* nil)
 
