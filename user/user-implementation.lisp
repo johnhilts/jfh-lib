@@ -107,11 +107,17 @@
     (when (next-method-p)
       (call-next-method))))
 
-(defmethod save-application-user ((application-user application-secure-user))
+(defmethod save-application-user-OLD ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
   (let ((data (jfh-store:serialize-object->list application-user (list 'user-password 'user-fingerprint 'user-api-key)))
         (user-store-object (make-instance 'jfh-store:user-store-object :label "hash" :key (user-id application-user) :location (format nil "~A/users" jfh-store:*store-root-folder*))))
     (jfh-store:save-user-data user-store-object data)))
+
+(defmethod save-application-user ((application-user application-secure-user))
+  "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
+  (let* ((data (jfh-store:serialize-object->list application-user (list 'user-password 'user-fingerprint 'user-api-key)))
+         (store-data (make-instance 'jfh-store:user-store-data :data data :label "hash" :key (user-id application-user))))
+    (jfh-store:save-user-data store-data)))
 
 (defmethod print-object ((user-index-entry user-index-entry) stream)
   "Print user index entry."
