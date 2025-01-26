@@ -72,9 +72,13 @@
 
 (defgeneric save-user-data (store-object data))
 
+(defgeneric save-user-data-NEW (data location &key label key))
+
 (defgeneric internal/get-data-by-location (location store-object))
 
 (defgeneric internal/save-data-by-location (location store-object data))
+
+(defgeneric internal/save-data-by-location-NEW (store data location))
 
 (defgeneric serialize-object->list (object accessors)
   (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))
