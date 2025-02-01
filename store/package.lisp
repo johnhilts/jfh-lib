@@ -3,29 +3,30 @@
 (defpackage #:jfh-store
   (:use #:common-lisp)
   (:export
-   #:*store-root-folder*
-   #:store-object
-   #:store-data
-   #:user-store-data
-   #:user-index-store-data
-   #:user-store-object
-   #:user-index-store-object
+   #:*app-data-path*
+   #:database-store
+   #:host
+   #:catalog
+   #:label
+   #:file-store
+   #:path
+   #:user-store
+   #:user-data-store
+   #:key
+   #:user-index-store
+   #:user-config-store
+   #:data
+   #:serialized-data
+   #:config-data
+   #:user-config-data
+   #:user-index-data
+   #:user-data
+   #:user-data-large
+   #:get-data-path
    #:get-data
-   #:save-user-data
-   #:save-index
-   #:save-data
    #:serialize-object->list
-   #:serialize-object
-   #:make-data-store
-   #:make-instance-from-data-store
-   #:write-instance-to-data-store
-   #:data-store-location
-   #:settings-file-path
-   #:user-path-root
-   #:get-data-store-location
-   #:fetch-or-create-data
-   #:write-complete-file
+   #:save-data
    #:read-complete-file
-   #:*data-path*
-   #:*index-path*
-   #:*data-store-location*))
+   #:write-complete-file
+   #:fetch-or-create-data
+   #:make-instance-from-data))

@@ -87,7 +87,7 @@
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
 
 (defmethod save-user (label user-info-list (application-user application-user))
-  "Input: data label, user info list (not a class), application-user. Output: user info list. Persist application user info."
+  "OBSOLETE;Input: data label, user info list (not a class), application-user. Output: user info list. Persist application user info."
   (jfh-store:save-data user-info-list label (user-id application-user)))
 
 (defmethod save-application-user-OLD ((application-user application-meta-user))
@@ -153,9 +153,8 @@
 (defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
   (let* ((data (jfh-store:serialize-object->list (make-user-index-entry application-user) (list 'user-id 'user-login)))
-           ;; (user-index-entry->list (make-user-index-entry application-user)))
-         (store-data (make-instance 'jfh-store:user-index-store-data :data data :label "user-login-index")))
-    (jfh-store:save-user-data store-data))
+         (store (make-instance 'jfh-store:user-index-store :label "user-login-index")))
+    (jfh-store:save-data store data))
   (save-application-user application-user)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
