@@ -37,3 +37,8 @@
   (let ((file-contents (get-data user-index-store))
         (file-path (get-data-path user-index-store)))
     (jfh-store:write-complete-file file-path (push (serialized-data user-index-data) file-contents))))
+
+(defmethod save-data ((user-config-store user-config-store) (user-config-data user-config-data))
+  (let ((file-path (get-data-path user-config-store)))
+    (ensure-directories-exist file-path)
+    (jfh-store:write-complete-file file-path (serialized-data user-config-data))))

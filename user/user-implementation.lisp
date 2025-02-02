@@ -101,9 +101,10 @@
 ;; TODO we can put the save-application-user methods into a "user-data.lisp" and just have all the logic there
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (let* ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
-         (store-data (make-instance 'jfh-store:user-store-data :data data :label "user" :key (user-id application-user))))
-    (jfh-store:save-user-data store-data)
+  (let* ((store (make-instance 'jfh-store:user-config-store :label "user" :key (user-id application-user)))
+         (serialized-data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
+         (data (make-instance 'jfh-store:user-config-data :serialized-data serialized-data)))
+    (jfh-store:save-data store data)
     (when (next-method-p)
       (call-next-method))))
 
@@ -152,9 +153,9 @@
 
 (defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
-  (let* ((data (jfh-store:serialize-object->list (make-user-index-entry application-user) (list 'user-id 'user-login)))
-         (store (make-instance 'jfh-store:user-index-store :label "user-login-index")))
-    (jfh-store:save-data store data))
+  (let* ((index-data (jfh-store:serialize-object->list (make-user-index-entry application-user) (list 'user-id 'user-login)))
+         (index-store (make-instance 'jfh-store:user-index-store :label "user-login-index")))
+    (jfh-store:save-data index-store index-data))
   (save-application-user application-user)))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
