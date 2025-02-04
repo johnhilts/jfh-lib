@@ -1,6 +1,6 @@
 (in-package #:jfh-configuration)
 
-(defclass application-configuration ()
+(defclass application-configuration (jfh-store:config-data)
   ((%settings-file-path
     :reader settings-file-path
     :initarg :settings-file-path)

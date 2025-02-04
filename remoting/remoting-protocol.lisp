@@ -1,6 +1,6 @@
 (in-package #:jfh-remoting)
 
-(defclass remoting-configuration ()
+(defclass remoting-configuration (jfh-store:config-data)
   ((%swank-port
     :reader swank-port
     :initarg :swank-port)

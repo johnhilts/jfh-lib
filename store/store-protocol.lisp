@@ -35,10 +35,7 @@
 
 (defclass user-config-store (user-data-store) ())
 
-(defclass data ()
-  ((%serialized-data
-    :reader serialized-data
-    :initarg :serialized-data)))
+(defclass data () ())
 
 (defclass config-data (data) ())
 
@@ -52,9 +49,9 @@
 
 (defgeneric get-data-path (file-store))
 
-(defgeneric get-data (file-store))
+(defgeneric make-instance* (class-name &key key field))
 
-(defgeneric serialize-object->list (object accessors)
+(defgeneric serialize-object->list (object readers)
   (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))
 
-(defgeneric save-data (file-store data))
+(defgeneric save-object (object readers &key &allow-other-keys))

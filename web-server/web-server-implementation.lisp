@@ -126,16 +126,6 @@
       (format stream
 	      "Hunchentoot SSL Acceptor: ~a, Hunchentoot Acceptor: ~a, Configuration: ~a" hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))))
 
-(defun make-web-configuration () ;; move to web-server.lisp
-  "Get configuration info from the file system and hydrate web-configuration object.
-Input: default configuration values.
-Output: web-configuration object."
-  (jfh-store:make-instance-from-data-store
-   'web-configuration
-   (list :ssl-port '? :http-port '? :static-root '?)
-   nil nil
-   (lambda (_ __) (declare (ignore _ __)) "./")))
-
 (defmethod start-hunchentoot ((web-configuration web-configuration))
   "start or re-start the hunchentoot web server"
   (flet ((make-acceptor-instances ()

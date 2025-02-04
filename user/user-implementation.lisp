@@ -26,9 +26,11 @@
 
 (defmethod get-user-path ((application-user application-user))
   "Input: application-user and app-configuration. Output: user path."
-  (with-accessors ((user-path-root jfh-store:user-path-root)) jfh-store:*data-store-location*
-    (with-accessors ((user-id user-id)) application-user
-      (format nil "~A~A/" user-path-root user-id))))
+  "can we stop using this?"
+;; (with-accessors ((user-path-root jfh-store:user-path-root)) jfh-store:*data-store-location*
+  ;;   (with-accessors ((user-id user-id)) application-user
+  ;;     (format nil "~A~A/" user-path-root user-id)))
+  )
 
 (defmethod get-user-info ((user-id application-user-id))
   "Search for user info in file system."
@@ -86,39 +88,15 @@
     (when application-user
       (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
 
-(defmethod save-user (label user-info-list (application-user application-user))
-  "OBSOLETE;Input: data label, user info list (not a class), application-user. Output: user info list. Persist application user info."
-  (jfh-store:save-data user-info-list label (user-id application-user)))
-
-(defmethod save-application-user-OLD ((application-user application-meta-user))
-  "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (let ((data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
-        (user-store-object (make-instance 'jfh-store:user-store-object :label "user" :key (user-id application-user) :location (format nil "~A/users" jfh-store:*store-root-folder*))))
-    (jfh-store:save-user-data user-store-object data)
-    (when (next-method-p)
-      (call-next-method))))
-
-;; TODO we can put the save-application-user methods into a "user-data.lisp" and just have all the logic there
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (let* ((store (make-instance 'jfh-store:user-config-store :label "user" :key (user-id application-user)))
-         (serialized-data (jfh-store:serialize-object->list application-user (list 'user-id 'user-login 'create-date 'disable)))
-         (data (make-instance 'jfh-store:user-config-data :serialized-data serialized-data)))
-    (jfh-store:save-data store data)
-    (when (next-method-p)
-      (call-next-method))))
-
-(defmethod save-application-user-OLD ((application-user application-secure-user))
-  "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (let ((data (jfh-store:serialize-object->list application-user (list 'user-password 'user-fingerprint 'user-api-key)))
-        (user-store-object (make-instance 'jfh-store:user-store-object :label "hash" :key (user-id application-user) :location (format nil "~A/users" jfh-store:*store-root-folder*))))
-    (jfh-store:save-user-data user-store-object data)))
+  (jfh-store:save-object application-user (list 'user-id 'user-login 'create-date 'disable) :key (user-id application-user))
+  (when (next-method-p)
+    (call-next-method)))
 
 (defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (let* ((data (jfh-store:serialize-object->list application-user (list 'user-password 'user-fingerprint 'user-api-key)))
-         (store-data (make-instance 'jfh-store:user-store-data :data data :label "hash" :key (user-id application-user))))
-    (jfh-store:save-user-data store-data)))
+  (jfh-store:save-object application-user (list 'user-password 'user-fingerprint 'user-api-key) :key (user-id application-user)))
 
 (defmethod print-object ((user-index-entry user-index-entry) stream)
   "Print user index entry."
@@ -133,7 +111,7 @@
 		 :user-login (user-login application-user)
 		 :user-id (user-id application-user)))
 
-(defmethod user-index-entry->list ((user-index-entry user-index-entry))
+(defmethod user-index-entry->list ((user-index-entry user-index-entry)) ;; TODO will need to be able to handle multiple kinds of indexes
   "Input: user index entry. Output: regular list. Conversion function."
   (list
    :user-id (user-id user-index-entry)
@@ -145,57 +123,18 @@
     (application-user-fingerprint 'application-user-fingerprint) ;; TODO add more types as needed
     (otherwise nil)))
 
-(defmethod save-new-application-user-OLD ((application-user application-meta-user))
-  "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
-  (let ((index-store-object (make-instance 'jfh-store:user-index-store-object :label "user-login-index" :location (format nil "~A/users" jfh-store:*store-root-folder*)))) ;; TODO - set location in :after method
-    (jfh-store:save-user-data index-store-object (user-index-entry->list (make-user-index-entry application-user)))
-    (save-application-user application-user)))
-
 (defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
-  (let* ((index-data (jfh-store:serialize-object->list (make-user-index-entry application-user) (list 'user-id 'user-login)))
-         (index-store (make-instance 'jfh-store:user-index-store :label "user-login-index")))
-    (jfh-store:save-data index-store index-data))
-  (save-application-user application-user)))
-
-;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-id application-user-id)) ;; TODO probably don't need this - if we already have the user ID why would we need to bother with the index?
-  "Input: User ID and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
-         (user-index-file-path (get-user-index-file-path user-path-root))
-	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
-    (find-if (lambda (entry) (string= (getf entry :user-id) (user-id user-id))) user-index)))
+  (let* ((index-entry (make-user-index-entry application-user)))
+    (jfh-store:save-object index-entry (list 'user-id 'user-login)))
+  (save-application-user application-user))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-login application-user-login))
   "Input: User Login and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
-         (user-index-file-path (get-user-index-file-path user-path-root))
-	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
-    (find-if (lambda (entry) (string= (getf entry :user-login) (user-login user-login))) user-index)))
+  (jfh-store:make-instance* 'user-login-index-entry :key (user-login user-login) :field :user-login))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-fingerprint application-user-fingerprint))
   "Input: User fingerprint and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
-         (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
-	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
-
-    (find-if (lambda (entry) (equalp (getf entry :user-fingerprint) (user-fingerprint user-fingerprint))) user-index)))
-
-;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-login string)) ;; TODO - can we remove this?
-  "Input: User ID and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
-         (user-index-file-path (get-user-index-file-path user-path-root))
-	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
-    (find-if (lambda (entry) (string= (getf entry :user-login) user-login)) user-index)))
-
-;; TODO add restart so that we have the option to generate the missing user index file
-(defmethod get-user-index-entry ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
-  "Input: User fingerprint and app-configuration. Output: user index entry."
-  (let* ((user-path-root (jfh-store:user-path-root jfh-store:*data-store-location*)) ;; TODO - move path related concerns to jfh-store
-         (user-index-file-path (get-user-fingerprint-index-file-path user-path-root))
-	 (user-index (jfh-store:fetch-or-create-data user-index-file-path))) ;; note: this is where the error is signalled if the user index file is missing
-
-    (find-if (lambda (entry) (equalp (getf entry :user-fingerprint) user-fingerprint)) user-index)))
+  (jfh-store:make-instance* 'jfh-user::user-fingerprint-index-entry :key (user-fingerprint user-fingerprint) :field :user-fingerprint))

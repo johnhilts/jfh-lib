@@ -1,6 +1,6 @@
 (in-package #:jfh-web-server)
 
-(defclass web-configuration ()
+(defclass web-configuration (jfh-store:config-data)
   ((%http-port
     :reader http-port
     :initarg :http-port)

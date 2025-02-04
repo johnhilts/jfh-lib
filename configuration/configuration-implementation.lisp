@@ -16,11 +16,9 @@
   "Get configuration info from the file system and hydrate application-configuration object.
 Input: application root path.
 Output: application-configuration object."
-  (jfh-store:make-instance-from-data-store
+  (jfh-store:make-instance-with-partial-data
    'application-configuration
-   (list :settings-file-path application-root-path :user-path-root '?)
-   nil nil
-   (lambda (_ __) (declare (ignore _ __)) application-root-path)))
+   (list :settings-file-path application-root-path :user-path-root '?)))
 
 (defmethod bind-configuration ((type (eql 'application)))
   "Input: the application root path. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."

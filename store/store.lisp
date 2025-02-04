@@ -10,9 +10,8 @@
              (setf (getf initargs initarg) (getf fill-in-values initarg)))
   initargs)
 
-(defun make-instance-from-data (class-name initargs file-store) ;; specialize on file-store?
-  "Input: class and its initarg names+values and an ID. Output: object using make-instance `class-name` with data from parameters + data store."
-  (let* ((file-path (get-data-path file-store))
-         (entry (read-complete-file file-path))
-         (initargs-no-missing-values (find-and-replace-missing-values initargs entry)))
+(defun make-instance-with-partial-data (class-name initargs)
+  "Input: class and its initarg names+values. Output: object using make-instance `class-name` with data from parameters + data store."
+  (let* ((file-contents (jfh-store:get-data class-name))
+         (initargs-no-missing-values (find-and-replace-missing-values initargs file-contents)))
     (apply #'make-instance class-name initargs-no-missing-values)))

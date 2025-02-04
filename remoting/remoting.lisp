@@ -5,8 +5,6 @@
 (defun make-remoting-configuration ()
   "Get configuration info from the file system and hydrate remoting-configuration object.
 Output: remoting-configuration object."
-  (jfh-store:make-instance-from-data-store
+  (jfh-store:make-instance-with-partial-data
    'remoting-configuration
-   (list :swank-port '? :swank-interface '?)
-   nil nil
-   (lambda (_ __) (declare (ignore _ __)) "./")))
+   (list :swank-port '? :swank-interface '?)))
