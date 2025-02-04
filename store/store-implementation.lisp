@@ -1,5 +1,12 @@
 (in-package #:jfh-store)
 
+(defmethod print-object ((file-store file-store) stream)
+  "Print file store."
+  (print-unreadable-object (file-store stream :type t)
+    (with-accessors ((path path) (label label)) file-store
+      (format stream
+	      "Path: ~A, Label: ~A" path label))))
+
 (defmethod get-data-path ((file-store file-store))
   (format nil "~A/~A.sexp" (path file-store) (label file-store)))
 
@@ -64,4 +71,4 @@
          (store (make-store class-name key))
          (file-path (get-data-path store)))
     (ensure-directories-exist file-path)
-    (jfh-store:write-complete-file file-path serialized-data)))))
+    (jfh-store:write-complete-file file-path serialized-data)))
