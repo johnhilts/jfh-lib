@@ -17,6 +17,13 @@
       (format stream
 	      "User ID: ~A, User Login: ~S" user-id user-login))))
 
+(defmethod print-object ((application-user application-secure-user) stream)
+  "Print application user."
+  (print-unreadable-object (application-user stream :type t)
+    (with-accessors ((user-password user-password)) application-user
+      (format stream
+	      "User Password: ****"))))
+
 (defmethod print-object ((application-user application-meta-user) stream)
   "Print application user."
   (print-unreadable-object (application-user stream :type t)
@@ -34,14 +41,18 @@
 
 (defmethod get-user-info ((user-id application-user-id))
   "Search for user info in file system."
-  (user-entry->application-user (read-user-info (jfh-user:user-id user-id) "user.sexp")))
+  (jfh-store:make-instance* 'application-user :key (user-id user-id))
+  ;; (user-entry->application-user (read-user-info (jfh-user:user-id user-id) "user.sexp"))
+  )
 
 (defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-login))
-         (user-id (getf user-index-entry :user-id)))
-    (when user-id
-      (user-entry->application-user (read-user-info user-id "user.sexp")))))
+  (jfh-store:make-instance* 'jfh-user:application-user :key (user-id user-login)) ;; TODO - this won't work because application-user-login doesn't have a user-id accessor
+;; (let* ((user-index-entry (get-user-index-entry user-login))
+  ;;        (user-id (getf user-index-entry :user-id)))
+  ;;   (when user-id
+  ;;     (user-entry->application-user (read-user-info user-id "user.sexp"))))
+  )
 
 (defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."

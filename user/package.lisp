@@ -10,6 +10,7 @@
    #:application-user-login
    #:application-user-api-key
    #:application-user-fingerprint
+   #:user-fingerprint-index-entry
    #:user-id
    #:user-login
    #:user-password

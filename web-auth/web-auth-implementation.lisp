@@ -13,4 +13,7 @@
 (defmethod jfh-web-server:fetch-or-create-user-session ((user-identifier jfh-user:application-user-fingerprint))
   "Establish the user session in Hunchentoot's session apparatus + in cookies."
   (unless (tbnl:session-value 'the-session-key)
-    (setf (tbnl:session-value 'the-session-key) (jfh-user:user-id (jfh-user::get-user-info user-identifier)))))
+    (setf
+     (tbnl:session-value 'the-session-key)
+     ;; TODO add 401 if we can't find a match
+     (jfh-user:user-id (jfh-store:make-instance* 'jfh-user:user-fingerprint-index-entry :key (jfh-user:user-fingerprint user-identifier) :field :user-fingerprint)))))

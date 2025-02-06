@@ -21,15 +21,12 @@
 ;; TODO: should this part go into "internal"? #-start-#
 ;; TODO: whether this even runs should be based on configuration
 (defmethod tbnl:handle-request :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
-  ;; (let ((*break-on-signals* 'error))
   (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
          (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
     (format t "Link fingerprint to session using: ~A" client-id)
     (jfh-web-server:fetch-or-create-user-session user-identifier)
     (when (next-method-p)
-      (call-next-method)))
-  ;; )
-  )
+      (call-next-method))))
 
 (defmethod tbnl:process-connection :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (socket t))
   ;; (let ((*break-on-signals* 'error))
