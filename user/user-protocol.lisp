@@ -10,6 +10,15 @@
     :initarg :user-login))
   (:documentation "Application user info - the very bare minimum."))
 
+(defclass user-index-entry (jfh-store:user-index-data)
+  ((%user-login
+    :reader user-login
+    :initarg :user-login)
+   (%user-id
+    :reader user-id
+    :initarg :user-id))
+  (:documentation "User index entry. Link User ID to persisted data."))
+
 (defclass application-secure-user (application-user)
   ((%user-password
     :reader user-password

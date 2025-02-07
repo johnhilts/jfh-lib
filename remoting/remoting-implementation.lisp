@@ -24,17 +24,6 @@ Output: actual-remoting-configuration object."
   (with-accessors ((swank-port swank-port) (swank-interface swank-interface)) remoting-configuration
     (make-instance 'actual-remoting-configuration :swank-port swank-port :swank-interface swank-interface :actual-swank-port actual-swank-port)))
 
-;; TODO - do we need this??
-(defmethod save-remoting-configuration ((remoting-configuration remoting-configuration) (data-store-location jfh-store:data-store-location))
-  "Input: remoting-configuration and data store location. Output: remoting configuration serialized into a plist."
-  (with-accessors ((settings-file-path jfh-store:settings-file-path)) data-store-location
-    (jfh-store:write-instance-to-data-store
-     'remoting-configuration
-     remoting-configuration
-     (list 'swank-port 'swank-interface)
-     nil nil
-     (lambda (_ __) (declare (ignore _ __)) "./"))))
-
 (defmethod start-swank ((remoting-configuration remoting-configuration))
   "Input: remoting-configuration. Start swank on the configured port."
   (with-accessors ((swank-port swank-port) (swank-interface swank-interface)) remoting-configuration

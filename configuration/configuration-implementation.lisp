@@ -22,7 +22,7 @@ Output: application-configuration object."
 
 (defmethod bind-configuration ((type (eql 'application)))
   "Input: the application root path. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
-  (let ((configuration (make-application-configuration "./")))
+  (let ((configuration (make-application-configuration ".")))
     (setf *application-configuration* configuration)
     configuration))
 

@@ -9,4 +9,5 @@
   :depends-on (#:swank #:jfh-configuration)
   :components ((:file package)
                (:file remoting-protocol)
+               (:file remoting)
                (:file remoting-implementation)))
