@@ -54,4 +54,4 @@
 (defgeneric serialize-object->list (object readers)
   (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))
 
-(defgeneric save-object (object readers &key &allow-other-keys))
+(defgeneric save-object (object &key readers key name &allow-other-keys))

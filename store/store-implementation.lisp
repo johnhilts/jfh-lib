@@ -24,11 +24,12 @@
          (intern (string accessor) (find-package 'keyword))
          (funcall accessor object))))
 
-(defun make-store (class-name &optional key)
-  (let ((sub-class (find-class class-name)))
+(defun make-store (class-name &optional key name)
+  (let ((sub-class (find-class class-name))
+        (save-name (or name class-name)))
     (flet ((subclassp (base-class)
              (subtypep sub-class (find-class base-class))))
-      (let ((label (format nil "~(~A~)" class-name)))
+      (let ((label (format nil "~(~A~)" save-name)))
         (cond
           ((subclassp 'user-index-data)
            (make-instance 'user-index-store :label label))
@@ -57,7 +58,7 @@
              nil)))
       (t (apply #'make-instance class-name file-contents)))))
 
-(defmethod save-object ((user-index-data user-index-data) (readers cons) &key &allow-other-keys)
+(defmethod save-object ((user-index-data user-index-data) &key readers &allow-other-keys)
   (let ((class-name (class-name (class-of user-index-data))))
     (multiple-value-bind (file-contents file-path)
         (get-data class-name)
@@ -65,10 +66,10 @@
         (ensure-directories-exist file-path)
         (jfh-store:write-complete-file file-path (push serialized-data file-contents))))))
 
-(defmethod save-object ((user-config-data user-config-data) (readers cons) &key key)
+(defmethod save-object ((user-config-data user-config-data) &key readers key name)
   (let* ((class-name (class-name (class-of user-config-data)))
          (serialized-data (serialize-object->list user-config-data readers))
-         (store (make-store class-name key))
+         (store (make-store class-name key name))
          (file-path (get-data-path store)))
     (ensure-directories-exist file-path)
     (jfh-store:write-complete-file file-path serialized-data)))

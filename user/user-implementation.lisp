@@ -101,13 +101,13 @@
 
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (jfh-store:save-object application-user (list 'user-id 'user-login 'create-date 'disable) :key (user-id application-user))
+  (jfh-store:save-object application-user :readers '(user-id user-login create-date disable) :key (user-id application-user) :name "application-meta-user")
   (when (next-method-p)
     (call-next-method)))
 
 (defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (jfh-store:save-object application-user (list 'user-password 'user-fingerprint 'user-api-key) :key (user-id application-user)))
+  (jfh-store:save-object application-user :readers '(user-password user-fingerprint user-api-key) :key (user-id application-user) :name "application-secure-user"))
 
 (defmethod print-object ((user-index-entry user-index-entry) stream)
   "Print user index entry."
