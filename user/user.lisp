@@ -19,11 +19,6 @@
 		 :user-login (user-login application-user)
 		 :user-password (getf user-entry :user-password)))
 
-(defun read-user-info (user-id file-name) ;; TODO: do we still need this?? using it in web-app
-  "read user info from user-id/user.sexp The guid-like user ID is needed to find the folder."
-  (let ((user-info (make-application-user user-id)))
-    (jfh-store:read-complete-file (format nil "~A~A" (get-user-path user-info) file-name))))
-
 (defun hash-password (plaintext-password)
   "Input: plaintext password. Output: Encrypted password."
   (let ((cipher

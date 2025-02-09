@@ -1,16 +1,18 @@
 ;;;; functions to handle auth related concerns. Depends on hunchentoot.
 (cl:in-package #:jfh-web-auth)
 
+;; NOTE: I don't think this is being used in hokima but might be useful in chasi
 (tbnl:define-easy-handler (authenticate-handler :uri "/auth") (user-login password redirect-back-to)
-  (let* ((user-info (jfh-user:get-secure-user-info user-login))
+  (let* ((user-info (jfh-user:get-secure-user-info (make-instance 'jfh-user:application-user-login :user-login user-login)))
          (authed (and user-info
                       (string=
                        (jfh-user:user-password user-info)
                        (jfh-user:hash-password password))))) ;; NOTE: AND returns the result of the last form
     (handle-auth-result authed user-info redirect-back-to)))
 
-(tbnl:define-easy-handler (authenticate-cert-handler :uri "/auth-cert") (user-fingerprint redirect-back-to) ;; TODO I think we can get rid of this
-  (let* ((user-info (jfh-user:get-secure-user-info user-fingerprint))
+;; NOTE: I don't think this is being used in hokima but might be useful in chasi
+(tbnl:define-easy-handler (authenticate-cert-handler :uri "/auth-cert") (user-fingerprint redirect-back-to)
+  (let* ((user-info (jfh-user:get-secure-user-info (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint user-fingerprint)))
          (authed (not (null user-info))))
     (handle-auth-result authed user-info redirect-back-to)))
 

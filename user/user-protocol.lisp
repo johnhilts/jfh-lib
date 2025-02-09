@@ -87,9 +87,6 @@
     :initarg :user-id))
   (:documentation "User index entry. Link User ID to persisted data."))
 
-(defgeneric get-user-path (application-user)
-  (:documentation "Input: application-user. Output: user path."))
-
 (defgeneric get-user-index-entry (user-login)
   (:documentation "Input: User name (login). Output: user index entry."))
 

@@ -31,73 +31,29 @@
       (format stream
 	      "User ID: ~A, User Login: ~S, Created: ~A, Disabled: ~:[false~;true~]" user-id user-login create-date disable))))
 
-(defmethod get-user-path ((application-user application-user))
-  "Input: application-user and app-configuration. Output: user path."
-  "can we stop using this?"
-;; (with-accessors ((user-path-root jfh-store:user-path-root)) jfh-store:*data-store-location*
-  ;;   (with-accessors ((user-id user-id)) application-user
-  ;;     (format nil "~A~A/" user-path-root user-id)))
-  )
-
 (defmethod get-user-info ((user-id application-user-id))
   "Search for user info in file system."
-  (jfh-store:make-instance* 'application-user :key (user-id user-id))
-  ;; (user-entry->application-user (read-user-info (jfh-user:user-id user-id) "user.sexp"))
-  )
+  (jfh-store:make-instance* 'application-user :key (user-id user-id)))
 
 (defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
-  (jfh-store:make-instance* 'jfh-user:application-user :key (user-id user-login)) ;; TODO - this won't work because application-user-login doesn't have a user-id accessor
-;; (let* ((user-index-entry (get-user-index-entry user-login))
-  ;;        (user-id (getf user-index-entry :user-id)))
-  ;;   (when user-id
-  ;;     (user-entry->application-user (read-user-info user-id "user.sexp"))))
-  )
+  (let ((user-index-entry (jfh-store:make-instance* 'jfh-user:user-login-index-entry :key (user-login user-login) :field :user-login)))
+    (jfh-store:make-instance* 'jfh-user:application-user :key (jfh-user:user-id user-index-entry))))
 
 (defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-fingerprint))
-         (user-id (getf user-index-entry :user-id)))
-    (when user-id
-      (user-entry->application-user (read-user-info user-id "user.sexp")))))
-
-(defmethod get-user-info ((user-login string)) ;; TODO - can we remove this?
-  "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-login))
-         (user-id (getf user-index-entry :user-id)))
-    (when user-id
-      (user-entry->application-user (read-user-info user-id "user.sexp")))))
-
-(defmethod get-user-info ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
-  "Search for user info in file system."
-  (let* ((user-index-entry (get-user-index-entry user-fingerprint))
-         (user-id (getf user-index-entry :user-id)))
-    (when user-id
-      (user-entry->application-user (read-user-info user-id "user.sexp")))))
+  (let ((user-index-entry (jfh-store:make-instance* 'jfh-user:user-fingerprint-index-entry :key (user-fingerprint user-fingerprint) :field :user-fingerprint)))
+    (jfh-store:make-instance* 'jfh-user:application-user :key (jfh-user:user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-login application-user-login))
   "Search for secure user info in file system."
-  (let* ((application-user (get-user-info (user-login user-login))))
-    (when application-user
-      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+  (let ((user-index-entry (jfh-store:make-instance* 'jfh-user:user-login-index-entry :key (user-login user-login) :field :user-login)))
+     (jfh-store:make-instance* 'jfh-user:application-secure-user :key (jfh-user:user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
-  (let* ((application-user (get-user-info (user-fingerprint user-fingerprint))))
-    (when application-user
-      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
-
-(defmethod get-secure-user-info ((user-login string)) ;; TODO - can we remove this?
-  "Search for secure user info in file system."
-  (let* ((application-user (get-user-info user-login)))
-    (when application-user
-      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
-
-(defmethod get-secure-user-info ((user-fingerprint simple-vector)) ;; TODO - can we remove this?
-  "Search for secure user info in file system."
-  (let* ((application-user (get-user-info user-fingerprint)))
-    (when application-user
-      (user-entry->application-secure-user application-user (read-user-info (user-id application-user) "hash.sexp")))))
+  (let ((user-index-entry (jfh-store:make-instance* 'jfh-user:user-fingerprint-index-entry :key (user-fingerprint user-fingerprint) :field :user-fingerprint)))
+    (jfh-store:make-instance* 'jfh-user:application-secure-user :key (jfh-user:user-id user-index-entry))))
 
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."

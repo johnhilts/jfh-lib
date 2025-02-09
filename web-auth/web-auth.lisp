@@ -10,7 +10,7 @@
 (defun validate-signup-parameters (name user-login password confirm-password)
   "Validate the values used to signup a user."
   (flet ((exists (user-login)
-           (jfh-user:get-user-info user-login)))
+           (jfh-user:get-user-info (make-instance 'jfh-user:application-user-login :user-login user-login))))
     (let ((signup-validation-failure-reasons ()))
       (if (or
 	   (zerop (length name))

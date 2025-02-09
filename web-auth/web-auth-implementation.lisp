@@ -16,4 +16,4 @@
     (setf
      (tbnl:session-value 'the-session-key)
      ;; TODO add 401 if we can't find a match
-     (jfh-user:user-id (jfh-store:make-instance* 'jfh-user:user-fingerprint-index-entry :key (jfh-user:user-fingerprint user-identifier) :field :user-fingerprint)))))
+     (jfh-user:user-id (jfh-user:get-user-info user-identifier)))))
