@@ -122,22 +122,10 @@
 		 :user-login (user-login application-user)
 		 :user-id (user-id application-user)))
 
-(defmethod user-index-entry->list ((user-index-entry user-index-entry)) ;; TODO will need to be able to handle multiple kinds of indexes
-  "Input: user index entry. Output: regular list. Conversion function."
-  (list
-   :user-id (user-id user-index-entry)
-   :user-login (user-login user-index-entry)))
-
-(defun get-user-identifier-class (application-user)
-  "Input: a user object. Output: the class name relevant to which index user file should be used."
-  (typecase application-user
-    (application-user-fingerprint 'application-user-fingerprint) ;; TODO add more types as needed
-    (otherwise nil)))
-
 (defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
   (let* ((index-entry (make-user-index-entry application-user)))
-    (jfh-store:save-object index-entry (list 'user-id 'user-login)))
+    (jfh-store:save-object index-entry :readers '(user-id user-login)))
   (save-application-user application-user))
 
 ;; TODO add restart so that we have the option to generate the missing user index file

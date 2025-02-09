@@ -4,18 +4,6 @@
   "Constructor for application-user."
   (make-instance 'application-user :user-id user-id :user-login ""))
 
-(defun make-application-secure-user (user-login user-password)
-  "Constructor for application-secure-user."
-  (make-instance 'application-secure-user :user-login user-login :user-password user-password))
-
-(defun get-user-index-file-path (user-path-root &optional (user-identifier-class nil))
-  (case user-identifier-class
-    (application-user-fingerprint (format nil "~Auser-fingerprint-index.sexp" user-path-root))
-    (t (format nil "~Auser-index.sexp" user-path-root))))
-
-(defun get-user-fingerprint-index-file-path (user-path-root)
-  (format nil "~Auser-fingerprint-index.sexp" user-path-root))
-
 (defun user-entry->application-user (user-entry)
   "Input: p-list. Output: application-user."
   (make-instance 'application-meta-user
