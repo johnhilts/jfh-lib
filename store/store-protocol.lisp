@@ -43,7 +43,11 @@
 
 (defclass user-index-data (data) ())
 
-(defclass user-data (data) ())
+(defclass user-data (data)
+  ((%id
+    :reader id
+    :initarg :id
+    :initform "")))
 
 (defclass user-data-large (data) ()) ;; unused for now, but meant to handle large datasets that are difficult to just READ
 

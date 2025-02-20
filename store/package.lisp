@@ -9,8 +9,10 @@
    #:user-config-data
    #:user-index-data
    #:user-data
+   #:id
    #:user-data-large
    #:make-instance*
+   #:make-instance-list
    #:get-data
    #:save-object
    #:read-complete-file
