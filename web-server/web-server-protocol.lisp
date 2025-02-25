@@ -9,7 +9,10 @@
     :initarg :ssl-port)
    (%static-root
     :reader static-root
-    :initarg :static-root))
+    :initarg :static-root)
+   (%cert-path
+    :reader cert-path
+    :initarg :cert-path))
   (:documentation "Web Application configurations."))
 
 (defclass web-application ()

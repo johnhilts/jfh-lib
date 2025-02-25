@@ -54,7 +54,7 @@
      (fetch-or-create-data file-path)
      file-path)))
 
-(defmethod make-instance* ((class-name symbol) &key key (field :user-id) where)
+(defmethod make-instance* ((class-name symbol) &key key (field :user-id) where) ;; TODO write a MAKE-INSTANCE-WHERE so that (FUNCTIONP WHERE); get rid of field, don't use key as a criterion
   (let ((file-contents (get-data class-name :key key)))
     (cond
       ((and where (listp (car file-contents))) ;; only supporting 1 kv pair for now
@@ -63,7 +63,7 @@
               (equalf (if (stringp match-value) #'string= #'equalp))
               (match (car (remove-if-not (lambda (e) (funcall equalf (getf e match-field) match-value)) file-contents))))
          (if match
-             (apply #'make-instance class-name match)
+             (apply #'make-instance class-name (nconc match (list :user-id key))) ;; TODO pass USER-ID as an optional (or keyword?) parameter when we write MAKE-INSTANCE-WHERE
              nil)))
       ((and key (listp (car file-contents)))
        (let* ((equalf (if (stringp key) #'string= #'equalp))

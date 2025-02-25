@@ -14,7 +14,7 @@
   (with-open-file (out "./log.txt" :direction :output :if-does-not-exist :create :if-exists :append)
     (prin1 string out)))
 
-(defun get-my-cert-path (&optional (default-path "./certs/hokima-2025/"))
+(defun get-cert-path (&optional (default-path (cert-path *web-configuration*)))
   (restart-case (if (probe-file default-path)
                     default-path
                     (error 'cert-file-missing :pathname default-path "Couldn't find certificate path ~S:" default-path))
@@ -35,7 +35,7 @@ Input: default configuration values.
 Output: web-configuration object."
   (jfh-store:make-instance-with-partial-data
    'web-configuration
-   (list :ssl-port '? :http-port '? :static-root '?)))
+   (list :ssl-port '? :http-port '? :static-root '? :cert-path '?)))
 
 ;; TODO: should this part go into "internal"? #-end-#
  

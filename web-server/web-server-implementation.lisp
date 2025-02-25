@@ -55,18 +55,18 @@
   ;; (let ((*break-on-signals* 'error))
 
     ;; attach SSL to the stream if necessary
-    (let ((my-cert-path (get-my-cert-path)))
+    (let ((cert-path (get-cert-path)))
       (let ((ctx (cl+ssl:make-context :verify-mode cl+ssl:+ssl-verify-peer+
                                       :verify-depth 1
-                                      :verify-location (format nil "~Aca.crt" my-cert-path)
-                                      :certificate-chain-file (format nil "~Aca.crt" my-cert-path)
+                                      :verify-location (format nil "~A/ca.crt" cert-path)
+                                      :certificate-chain-file (format nil "~A/ca.crt" cert-path)
                                       )))
         (print "make server stream ...")
         (cl+ssl:with-global-context (ctx :auto-free-p t)
           (let ((server-stream (cl+ssl:make-ssl-server-stream
                                 stream
-                                :certificate (format nil "~Aserver.crt" my-cert-path)
-                                :key (format nil "~Aserver.key" my-cert-path))))
+                                :certificate (format nil "~A/server.crt" cert-path)
+                                :key (format nil "~A/server.key" cert-path))))
             (setf *client-cert-missing* nil) ;; maybe this should be server-cert-missing??
             (handler-bind
                 ((sb-sys:memory-fault-error
@@ -126,19 +126,21 @@
 (defmethod start-hunchentoot ((web-configuration web-configuration))
   "start or re-start the hunchentoot web server"
   (flet ((make-acceptor-instances ()
-           (with-accessors ((ssl-port ssl-port) (http-port http-port)) web-configuration
-             (values
-              ;; TODO: need to add the key paths to configuration!! Then, can we do a "make-instance-from-data-store"?
-              (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file #P"./certs/hokima-2025/server.key" :ssl-certificate-file #P"./certs/hokima-2025/server.crt")
-              (make-instance 'http-to-https-acceptor :port http-port :ssl-port ssl-port))))
+           (with-accessors ((ssl-port ssl-port) (http-port http-port) (cert-path cert-path)) web-configuration
+             (let ((server-key-path (format nil "~A/server.key" cert-path))
+                   (server-crt-path (format nil "~A/server.crt" cert-path)))
+               (values
+                ;; TODO: need to add the key paths to configuration!! Then, can we do a "make-instance-from-data-store"?
+                (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file server-key-path :ssl-certificate-file server-crt-path) ;; NOTE: replaced pathname with string
+                (make-instance 'http-to-https-acceptor :port http-port :ssl-port ssl-port)))))
          (start-hunchentoot-by-http-protocol-type (acceptor-instance acceptor-type) ;; TODO: "acceptor-instance" is redundant!!
            (prog1
                (restart-case (tbnl:start acceptor-instance)
 	         (skip-hunchentoot-start ()
                    :report "Skip starting Web Server (hunchentoot)."
                    (ecase acceptor-type
-                    (ssl (hunchentoot-ssl-acceptor *web-application*))
-                    (http (hunchentoot-acceptor *web-application*))))
+                     (ssl (hunchentoot-ssl-acceptor *web-application*))
+                     (http (hunchentoot-acceptor *web-application*))))
 	         ;; (use-different-port ()
 	         ;;   :report "Use a different port - will increment by 1 from the configured port number."
 	         ;;   ;; (format nil "Use a different port - change from ~d to ~d" (tbnl:acceptor-port acceptor-instance) (1+ (tbnl:acceptor-port acceptor-instance))))
