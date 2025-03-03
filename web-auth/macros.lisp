@@ -12,9 +12,9 @@
          (body-after-description (if has-description (cdr body) body)))
     `(tbnl:define-easy-handler (,name :uri ,end-point) (,@params)
        ,(when description description)
-       (multiple-value-bind (authenticated-user present-p)
+       (multiple-value-bind (authenticated-user-id present-p)
            (get-authenticated-user)
-         (declare (ignorable authenticated-user))
+         (declare (ignorable authenticated-user-id))
          (if present-p
              ,@body-after-description
              (tbnl:redirect (format nil "/login?redirect-back-to=~a" (tbnl:url-encode ,end-point))))))))

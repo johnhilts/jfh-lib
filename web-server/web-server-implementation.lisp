@@ -18,10 +18,19 @@
   ;; (break) TODO - why was this here??
 ;; )
 
+(defun can-skip-certificate-auth ()
+  (or
+   (string=
+    "/robots.txt"
+    (tbnl:request-uri tbnl:*request*))
+   (string=
+    (format nil "~W" (cffi:null-pointer))
+    (format nil "~W" (tbnl:get-peer-ssl-certificate)))))
+
 ;; TODO: should this part go into "internal"? #-start-#
 ;; TODO: whether this even runs should be based on configuration
 (defmethod tbnl:handle-request :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
-  (unless (string= "/robots.txt" (tbnl:request-uri tbnl:*request*))
+  (unless (can-skip-certificate-auth)
     (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
       (format t "Link fingerprint to session using: ~A" client-id)

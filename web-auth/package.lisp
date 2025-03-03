@@ -5,7 +5,8 @@
   ;; (:local-nicknames (#:web #:jfh-web-core))
   (:export
    #:define-protected-page
-   #:authenticated-user
+   ;; #:authenticated-user
+   #:authenticated-user-id
    ;; #:use-web-auth
    #:session-user-map ;; TODO - remove
    #:the-session-key

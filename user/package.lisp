@@ -10,11 +10,14 @@
    #:application-user-login
    #:application-user-api-key
    #:application-user-fingerprint
+   #:application-user-identifier
    #:user-id
    #:user-login
    #:user-password
    #:user-api-key
    #:user-fingerprint
+   #:user-index-entry
+   #:user-login-index-entry
    #:make-application-user
    #:read-user-info
    #:save-user
