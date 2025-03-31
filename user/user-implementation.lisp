@@ -33,37 +33,37 @@
 
 (defmethod get-user-info ((user-id application-user-id))
   "Search for user info in file system."
-  (jfh-store:make-instance* 'application-meta-user :key (user-id user-id)))
+  (jfh-store:make-instance* 'application-meta-user :user-id (user-id user-id)))
 
 (defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :key (user-login user-login) :field :user-login)))
-    (jfh-store:make-instance* 'application-meta-user :key (user-id user-index-entry))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login)))))
+    (jfh-store:make-instance* 'application-meta-user :user-id (user-id user-index-entry))))
 
 (defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :key (user-fingerprint user-fingerprint) :field :user-fingerprint)))
-    (jfh-store:make-instance* 'application-meta-user :key (user-id user-index-entry))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint)) )))
+    (jfh-store:make-instance* 'application-meta-user :user-id (user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-login application-user-login))
   "Search for secure user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :key (user-login user-login) :field :user-login)))
-     (jfh-store:make-instance* 'application-secure-user :key (user-id user-index-entry))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login)))))
+     (jfh-store:make-instance* 'application-secure-user :user-id (user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :key (user-fingerprint user-fingerprint) :field :user-fingerprint)))
-    (jfh-store:make-instance* 'application-secure-user :key (user-id user-index-entry))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint)))))
+    (jfh-store:make-instance* 'application-secure-user :user-id (user-id user-index-entry))))
 
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (jfh-store:save-object application-user :readers '(user-id user-login create-date disable) :key (user-id application-user) :name "application-meta-user")
+  (jfh-store:save-object application-user :readers '(user-id user-login create-date disable) :save-name "application-meta-user")
   (when (next-method-p)
     (call-next-method)))
 
 (defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (jfh-store:save-object application-user :readers '(user-password user-fingerprint user-api-key) :key (user-id application-user) :name "application-secure-user"))
+  (jfh-store:save-object application-user :readers '(user-password user-fingerprint user-api-key) :save-name "application-secure-user"))
 
 (defmethod print-object ((user-index-entry user-index-entry) stream)
   "Print user index entry."
@@ -87,9 +87,9 @@
 ;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-login application-user-login))
   "Input: User Login and app-configuration. Output: user index entry."
-  (jfh-store:make-instance* 'user-login-index-entry :key (user-login user-login) :field :user-login))
+  (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login))))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
 (defmethod get-user-index-entry ((user-fingerprint application-user-fingerprint))
   "Input: User fingerprint and app-configuration. Output: user index entry."
-  (jfh-store:make-instance* 'user-fingerprint-index-entry :key (user-fingerprint user-fingerprint) :field :user-fingerprint))
+  (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint))))

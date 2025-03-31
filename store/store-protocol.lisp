@@ -4,58 +4,31 @@
 
 (defvar *app-data-path* ".")
 
-(defclass database-store ()
-  ((%host
-    :reader host)
-   (%catalog
-    :reader catalog)
-   (%label
-    :reader label))) ;; unused ATM
+(defclass database () ()) ;; unused ATM
+(defclass flat-file () ())
 
-(defclass file-store ()
-  ((%path
-    :reader path
-    :initarg :path
-    :initform *app-data-path*)
-   (%label
-    :reader label
-    :initarg :label)))
-
-(defclass user-store (file-store)
-  ((%path
-    :reader path
-    :initform (format nil "~A/users" *app-data-path*))))
-
-(defclass user-data-store (user-store)
-  ((%key
-    :reader key
-    :initarg :key)))
-
-(defclass user-index-store (user-store) ())
-
-(defclass user-config-store (user-data-store) ())
-
-(defclass data () ())
-
-(defclass config-data (data) ())
-
-(defclass user-config-data (data) ())
-
-(defclass user-index-data (data) ())
-
-(defclass user-data (data)
-  ((%id
-    :reader id
-    :initarg :id
-    :initform "")))
-
+(defclass user-index (flat-file)
+  ((%user-id :reader user-id :initarg :user-id))) ;; index file in the users folder
+(defclass user-settings (flat-file)
+  ((%user-id :reader user-id :initarg :user-id))) ;; user settings in users/{user-id}/ sub-folder
+(defclass user-data (flat-file)
+  ((%data-id :reader data-id :initarg :data-id)
+   (%user-id :reader user-id :initarg :user-id))) ;; data in users/{user-id}/ sub-folder
 (defclass user-data-large (data) ()) ;; unused for now, but meant to handle large datasets that are difficult to just READ
+(defclass config-data (flat-file) ()) ;; configuration data in app root folder
 
-(defgeneric get-data-path (file-store))
+;; TODO - should these be defined here? Do they have to be ??
+(defclass user-login-index (user-index)
+  ((%user-login :reader user-login :initarg :user-login)))
+(defclass user-fingerprint-index (user-index)
+  ((%user-fingerprint :reader user-fingerprint :initarg :user-fingerprint)))
+(defclass user-apikey-index (user-index)
+  ((%user-apikey :reader user-apikey :initarg :user-apikey)))
 
-(defgeneric make-instance* (class-name &key key field))
+;; index support
+(defparameter *indexed-user-fields* '(:user-id user-index :user-login user-login-index :user-fingerprint user-fingerprint-index :user-apikey user-apikey-index))
 
-(defgeneric serialize-object->list (object readers)
-  (:documentation "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used for data with 1 row."))
-
-(defgeneric save-object (object &key readers key name &allow-other-keys))
+(defgeneric make-instance* (class-name &key where user-id))
+(defgeneric serialize-object->list (object accessors))
+(defgeneric save-object (object &key readers save-name))
+(defgeneric save-index (index &key readers save-name))
