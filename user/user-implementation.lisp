@@ -65,7 +65,7 @@
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
   (jfh-store:save-object application-user :readers '(user-password user-fingerprint user-api-key) :save-name "application-secure-user"))
 
-(defmethod print-object ((user-index-entry user-index-entry) stream)
+(defmethod print-object ((user-index-entry user-login-index-entry) stream)
   "Print user index entry."
   (print-unreadable-object (user-index-entry stream :type t)
     (with-accessors ((user-id user-id) (user-login user-login)) user-index-entry
@@ -74,7 +74,7 @@
 
 (defmethod make-user-index-entry ((application-user application-user))
   "Input: application-user. Output: user index entry."
-  (make-instance 'user-index-entry
+  (make-instance 'user-login-index-entry
 		 :user-login (user-login application-user)
 		 :user-id (user-id application-user)))
 
