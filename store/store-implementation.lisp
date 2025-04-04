@@ -29,6 +29,7 @@
          (file-contents (fetch-or-create-data full-file-name)))
     (if where
         (destructuring-bind (key value)
+            ;; TODO - make WHERE handle multiple records
             where ;; NOTE - assuming only 1 "clause"; TODO - support any number of clauses, or a lambda (easier!)
           (let ((comparer (choose-where-comparer value)))
             (interpolate-user-id-into key-user-id
@@ -100,17 +101,12 @@
          (intern (string accessor) (find-package 'keyword))
          (funcall accessor object))))
 
-;; TODO - need to complete implementation
 (defun prepend-data (full-file-name serialized-data)
   (let ((file-contents (fetch-or-create-data full-file-name)))
-    (write-complete-file full-file-name (push serialized-data file-contents))
-;; (format nil "~&Write ~S~%... to ...~%~A" (push serialized-data file-contents) full-file-name)
-    ))
+    (write-complete-file full-file-name (push serialized-data file-contents))))
 
 (defun overwrite-data (full-file-name serialized-data)
-  (write-complete-file full-file-name serialized-data)
-  ;; (format nil "~&Write ~S~%... to ...~%~A~%" serialized-data full-file-name)
-  )
+  (write-complete-file full-file-name serialized-data))
 
 (defun serialize-data-and-get-file-name (object readers save-name)
   (values (get-full-file-name (class-name (class-of object)) save-name (lambda () (user-id object)))
