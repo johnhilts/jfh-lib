@@ -15,13 +15,43 @@
 ;;     (when (zerop (length data-id))
 ;;       (setf #1# (jfh-utility:generate-unique-token)))))
 
-;; TODO - need to update
-(defun make-instance-list (class-name &key key)
-  (let ((file-contents (get-data class-name :key key))) ;; TODO in the future, may replace GET-DATA with something that will READ-LINE instead of do 1 READ
-    (loop for line in file-contents
-          while line
+(defun choose-where-comparer (value)
+  (typecase value
+    (vector #'equalp)
+    (number #'=)
+    (otherwise #'string=)))
+
+(defun get-file-contents (user-id class-name where &key fetch-multiple)
+  (let* ((need-index-lookup (and (null user-id) where))
+         (index-full-file-name (and need-index-lookup (get-index-full-file-name where)))
+         (key-user-id (or user-id (and need-index-lookup (getf (read-from-index index-full-file-name where) :user-id))))
+         (full-file-name (get-full-file-name class-name (string-downcase (string class-name)) (lambda () key-user-id)))
+         (file-contents (fetch-or-create-data full-file-name)))
+    (if where
+        (destructuring-bind (key value)
+            where ;; NOTE - assuming only 1 "clause"; TODO - support any number of clauses, or a lambda (easier!)
+          (let ((comparer (choose-where-comparer value)))
+            (interpolate-user-id-into key-user-id
+                                      (car
+                                       (remove-if-not
+                                        (lambda (e)
+                                          (funcall comparer value (getf e key))) ;; TODO - be more robust than STRING= and EQUALP
+                                        file-contents)))))
+        (if (listp (car file-contents))
+            (if fetch-multiple
+                (loop for row in file-contents
+                      collect
+                      (interpolate-user-id-into key-user-id row))
+                (progn
+                  (warn "Multiple rows returned; retrieving first one; for multiple rows use MAKE-INSTANCE-LIST instead.")
+                  (interpolate-user-id-into key-user-id (car file-contents))))
+            (interpolate-user-id-into key-user-id file-contents)))))
+
+(defun make-instance-list (class-name &key where user-id)
+  (let ((file-contents (get-file-contents user-id class-name where :fetch-multiple t)))  ;; TODO - SIGNAL jfh-store:no-data-match if NIL
+    (loop for row in file-contents
           collect
-          (apply #'make-instance class-name line))))
+          (apply #'make-instance class-name row))))
 
 (defun get-index-full-file-name (where)
   (let ((index-file-name (derive-index-from-where where)))
@@ -58,32 +88,9 @@
   ;; if no WHERE, or no index found, default to USER-INDEX
   ;; derive correct file path from index
   ;; get data "however" - one giant READ, or READ-LINE + primary index
-  (labels ((choose-comparer (value) ;; TODO - replace this with methods / specialization
-             (typecase value
-               (vector #'equalp)
-               (number #'=)
-               (otherwise #'string=))))
-    (flet ((get-file-contents ()
-             (let* ((need-index-lookup (and (null user-id) where))
-                    (index-full-file-name (and need-index-lookup (get-index-full-file-name where)))
-                    (key-user-id (or user-id (and need-index-lookup (getf (read-from-index index-full-file-name where) :user-id))))
-                    (full-file-name (get-full-file-name class-name (string-downcase (string class-name)) (lambda () key-user-id)))
-                    (file-contents (fetch-or-create-data full-file-name)))
-               (if where
-                   (destructuring-bind (key value)
-                       where ;; NOTE - assuming only 1 "clause"; TODO - support any number of clauses, or a lambda (easier!)
-                     (let ((comparer (choose-comparer value)))
-                       (interpolate-user-id-into key-user-id
-                                                 (car
-                                                  (remove-if-not
-                                                   (lambda (e)
-                                                     (funcall comparer value (getf e key))) ;; TODO - be more robust than STRING= and EQUALP
-                                                   file-contents)))))
-                   (interpolate-user-id-into key-user-id file-contents)))))
-      (let ((file-contents (get-file-contents)))  ;; TODO - SIGNAL jfh-store:no-data-match if NIL
-        (unless (null file-contents)
-          ;; TODO - error if file-contents has multiple rows - you need to use WHERE
-          (apply #'make-instance class-name file-contents))))))
+  (let ((file-contents (get-file-contents user-id class-name where)))  ;; TODO - SIGNAL jfh-store:no-data-match if NIL
+    (unless (null file-contents)
+      (apply #'make-instance class-name file-contents))))
 
 (defmethod serialize-object->list ((object flat-file) accessors)
   "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used with 1 \"row\" of data."
@@ -105,26 +112,24 @@
   ;; (format nil "~&Write ~S~%... to ...~%~A~%" serialized-data full-file-name)
   )
 
-(defun get-data-and-file-name (object readers save-name)
+(defun serialize-data-and-get-file-name (object readers save-name)
   (values (get-full-file-name (class-name (class-of object)) save-name (lambda () (user-id object)))
           (serialize-object->list object readers)))
 
 (defmethod update-object ((object t) readers save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
-      (get-data-and-file-name object readers save-name)
+      (serialize-data-and-get-file-name object readers save-name)
     (prepend-data full-file-name serialized-data)))
 
 (defmethod update-object ((object user-data) readers save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
-      (get-data-and-file-name object readers save-name)
+      (serialize-data-and-get-file-name object readers save-name)
     (let* ((file-contents (fetch-or-create-data full-file-name))
            (data-without-new-row (remove-if
                                  (lambda (e)
-                                   (and
-                                    (string= (user-id object) (getf e :user-id))
-                                    (= (data-id object) (getf e :data-id))))
+                                   (= (data-id object) (getf e :data-id)))
                                  file-contents)))
       (overwrite-data full-file-name data-without-new-row)
       (prepend-data full-file-name serialized-data))))
@@ -132,7 +137,7 @@
 (defun overwrite-object (object readers save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
-      (get-data-and-file-name object readers save-name)
+      (serialize-data-and-get-file-name object readers save-name)
     (overwrite-data full-file-name serialized-data)))
 
 (defmethod save-object ((object flat-file) &key readers save-name)
