@@ -109,11 +109,25 @@
   (values (get-full-file-name (class-name (class-of object)) save-name (lambda () (user-id object)))
           (serialize-object->list object readers)))
 
-(defun update-object (object readers save-name)
+(defmethod update-object ((object t) readers save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
       (get-data-and-file-name object readers save-name)
     (prepend-data full-file-name serialized-data)))
+
+(defmethod update-object ((object user-data) readers save-name)
+  (multiple-value-bind
+        (full-file-name serialized-data)
+      (get-data-and-file-name object readers save-name)
+    (let* ((file-contents (fetch-or-create-data full-file-name))
+           (data-without-new-row (remove-if
+                                 (lambda (e)
+                                   (and
+                                    (string= (user-id object) (getf e :user-id))
+                                    (= (data-id object) (getf e :data-id))))
+                                 file-contents)))
+      (overwrite-data full-file-name data-without-new-row)
+      (prepend-data full-file-name serialized-data))))
 
 (defun overwrite-object (object readers save-name)
   (multiple-value-bind

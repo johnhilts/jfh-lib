@@ -32,3 +32,4 @@
 (defgeneric serialize-object->list (object accessors))
 (defgeneric save-object (object &key readers save-name))
 (defgeneric save-index (index &key readers save-name))
+(defgeneric update-data (object readers save-name))
