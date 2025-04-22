@@ -185,19 +185,6 @@
           (string-downcase (symbol-name index-name))
           nil))))
 
-(defun derive-index-from-where-old (where)
-  (unless (null where)
-    (let* ((key (car where))
-           (index-name
-             (case key
-               (:user-login 'user-login-index)
-               (:user-fingerprint 'user-fingerprint-index)
-               (:user-apikey 'user-apikey-index)
-               (otherwise nil))))
-      (if index-name
-          (string-downcase (symbol-name index-name))
-          nil))))
-
 (defun get-file-path-type (class-name)
   (declare (type symbol class-name))
   (let ((sub-class (find-class class-name)))
