@@ -1,11 +1,7 @@
 (in-package #:jfh-user)
 
 (defclass application-user (jfh-store:user-settings)
-  ((%user-id
-    :reader user-id
-    :initarg :user-id
-    :initform "")
-   (%user-login
+  ((%user-login
     :reader user-login
     :initarg :user-login))
   (:documentation "Application user info - the very bare minimum."))

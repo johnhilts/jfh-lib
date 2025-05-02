@@ -7,6 +7,10 @@
 (defclass database () ()) ;; unused ATM
 (defclass flat-file () ())
 
+(defclass reader-entry ()
+  ((%reader-name :reader reader-name :initarg :reader-name)
+   (%slot-boundp-check :reader slot-boundp-check :initarg :slot-boundp-check)))
+
 (defclass user-index (flat-file)
   ((%user-id :reader user-id :initarg :user-id))) ;; index file in the users folder
 (defclass user-settings (flat-file)
@@ -29,7 +33,8 @@
 (defparameter *indexed-user-fields* '(:user-id user-index :user-login user-login-index :user-fingerprint user-fingerprint-index :user-apikey user-apikey-index))
 
 (defgeneric make-instance* (class-name &key where user-id))
-(defgeneric serialize-object->list (object accessors))
-(defgeneric save-object (object &key readers save-name))
-(defgeneric save-index (index &key readers save-name))
-(defgeneric update-data (object readers save-name))
+(defgeneric serialize-object->list (object))
+(defgeneric save-object (object &key save-name))
+(defgeneric save-index (index &key save-name))
+(defgeneric update-data (object save-name))
+(defgeneric get-direct-readers (class))

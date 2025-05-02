@@ -6,7 +6,7 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:jfh-utility)
+  :depends-on (#:jfh-utility #:closer-mop)
   :components ((:file package)
                (:file store-protocol)
                (:file file-io)

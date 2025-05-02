@@ -12,6 +12,7 @@
    #:user-index
    #:user-settings
    #:user-data
+   #:user-id
    #:id
    #:user-data-large
    #:user-login-index

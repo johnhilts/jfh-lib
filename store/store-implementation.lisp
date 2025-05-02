@@ -1,4 +1,12 @@
+;;;; TODO
+;;;; NOTE: check if a slot is bound:
+;;; (let ((object (make-instance 'jfh-user::application-user :user-login "me@here.com" :user-id "abc-123")))
+;;; (cl:slot-boundp object (closer-mop:slot-definition-name (car (closer-mop:class-direct-slots (find-class (class-name (class-of object))))))))
+;;;; Need to create an object to store the reader name and a lambda exp to check slot-boundp
+;;;; GET-EFFECTIVE-READERS is only used in 1 method
 (in-package #:jfh-store)
+
+(defparameter *effective-readers* (make-hash-table))
 
 ;; TODO - need to update
 ;; (defmethod print-object ((file-store file-store) stream)
@@ -14,6 +22,26 @@
 ;;   (let ((data-id #1=(slot-value user-data '%data-id)))
 ;;     (when (zerop (length data-id))
 ;;       (setf #1# (jfh-utility:generate-unique-token)))))
+
+(defun get-effective-readers (class)
+  "Does the actual work to get the readers for a class. Assumes CLASS inherits JFH-STORE:FLAT-FILE."
+  (flet ((standard-super-class-p (super-class)
+           (or (eql (find-class 'standard-object) super-class) (eql (find-class 'standard-class) super-class)))
+         (make-reader-entry (slot)
+           (make-instance 'reader-entry
+                          :reader-name (car (closer-mop:slot-definition-readers slot)) ;; assuming only 1 reader per slot
+                          :slot-boundp-check (lambda (object) (slot-boundp object (closer-mop:slot-definition-name slot))))))
+    (let ((cached-readers (gethash class *effective-readers*)))
+      (if cached-readers
+          cached-readers
+          (let ((direct-readers (mapcar #'make-reader-entry (closer-mop:class-direct-slots class)))
+                (direct-superclasses (remove-if #'standard-super-class-p (closer-mop:class-direct-superclasses class))))
+            (let ((effective-readers (union
+                                      direct-readers
+                                      (if direct-superclasses
+                                          (mapcan #'get-effective-readers direct-superclasses)
+                                          nil))))
+              (setf (gethash class *effective-readers*) effective-readers)))))))
 
 (defun choose-where-comparer (value)
   (typecase value
@@ -93,13 +121,16 @@
     (unless (null file-contents)
       (apply #'make-instance class-name file-contents))))
 
-(defmethod serialize-object->list ((object flat-file) accessors)
-  "Input: an object and its accessors. Output: plist of accessor values that are serialized to a list. Meant to be used with 1 \"row\" of data."
-  (loop for accessor in accessors
-        nconc
-        (list
-         (intern (string accessor) (find-package 'keyword))
-         (funcall accessor object))))
+(defmethod serialize-object->list ((object flat-file))
+  "Input: an object. Output: plist of accessor values that are serialized to a list. Meant to be used with 1 \"row\" of data."
+  (let* ((reader-entries (get-effective-readers (find-class (class-name (class-of object))))))
+    (loop for reader-entry in reader-entries ;; TODO add filter here using specialization to remove the readers we don't want
+          for reader = (reader-name reader-entry)
+          when (funcall (slot-boundp-check reader-entry) object) ;; this part has to reach back into the HT
+            nconc
+            (list
+             (intern (string reader) (find-package 'keyword))
+             (funcall reader object)))))
 
 (defun prepend-data (full-file-name serialized-data)
   (let ((file-contents (fetch-or-create-data full-file-name)))
@@ -108,20 +139,20 @@
 (defun overwrite-data (full-file-name serialized-data)
   (write-complete-file full-file-name serialized-data))
 
-(defun serialize-data-and-get-file-name (object readers save-name)
+(defun serialize-data-and-get-file-name (object save-name)
   (values (get-full-file-name (class-name (class-of object)) save-name (lambda () (user-id object)))
-          (serialize-object->list object readers)))
+          (serialize-object->list object)))
 
-(defmethod update-object ((object t) readers save-name)
+(defmethod update-object ((object t) save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
-      (serialize-data-and-get-file-name object readers save-name)
+      (serialize-data-and-get-file-name object save-name)
     (prepend-data full-file-name serialized-data)))
 
-(defmethod update-object ((object user-data) readers save-name)
+(defmethod update-object ((object user-data) save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
-      (serialize-data-and-get-file-name object readers save-name)
+      (serialize-data-and-get-file-name object save-name)
     (let* ((file-contents (fetch-or-create-data full-file-name))
            (data-without-new-row (remove-if
                                  (lambda (e)
@@ -130,17 +161,17 @@
       (overwrite-data full-file-name data-without-new-row)
       (prepend-data full-file-name serialized-data))))
 
-(defun overwrite-object (object readers save-name)
+(defun overwrite-object (object save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
-      (serialize-data-and-get-file-name object readers save-name)
+      (serialize-data-and-get-file-name object save-name)
     (overwrite-data full-file-name serialized-data)))
 
-(defmethod save-object ((object flat-file) &key readers save-name)
+(defmethod save-object ((object flat-file) &key save-name)
   "Default is to pre-pend; nothing should actually call this."
-  (update-object object readers save-name))
+  (update-object object save-name))
 
-(defmethod save-object ((object user-data) &key readers save-name)
+(defmethod save-object ((object user-data) &key save-name)
   #| TODO - need to make this SMARTER!!
   - if no existing data, then create new
   - if data exists AND it has the same data-id, then update / replace
@@ -148,20 +179,20 @@
   - what's the best way to do this?!? Remove the existing line, then prepend the updated one?
   - if data exists AND it DOES NOT have a match for the same data-id, then pre-pend (how it works now)
   |#
-  (update-object object readers save-name))
+  (update-object object save-name))
 
-(defmethod save-object ((object user-settings) &key readers save-name)
-  (overwrite-object object readers save-name))
+(defmethod save-object ((object user-settings) &key save-name)
+  (overwrite-object object save-name))
 
-(defmethod save-object ((object user-index) &key readers save-name)
-  (update-object object readers save-name))
+(defmethod save-object ((object user-index) &key save-name)
+  (update-object object save-name))
 
-(defmethod save-object ((object config-data) &key readers save-name)
-  (overwrite-object object readers save-name))
+(defmethod save-object ((object config-data) &key save-name)
+  (overwrite-object object save-name))
 
-(defmethod save-index ((index user-index) &key readers save-name)
+(defmethod save-index ((index user-index) &key save-name)
   ;; (let ((index-file-name (get-full-file-name (class-name (class-of index)) save-name))))
-  (save-object index :save-name save-name :readers readers))
+  (save-object index :save-name save-name))
 
 (defun get-full-file-name (class-name save-name &optional get-user-id)
   ;; derive correct file path from object's class name

@@ -4,7 +4,7 @@
   "Initializations:
 - Encrypt the user password. This is meant to prevent the plain text password from being in memory.
 - Set the User ID to a unique ID."
-  (let ((user-id #1=(slot-value application-secure-user '%user-id))
+  (let ((user-id #1=(slot-value application-secure-user 'jfh-store::%user-id)) ;; TODO breaking encapsulation with ::
         (password #2=(slot-value application-secure-user '%user-password)))
     (when (zerop (length user-id))
       (setf #1# (jfh-utility:generate-unique-token))
