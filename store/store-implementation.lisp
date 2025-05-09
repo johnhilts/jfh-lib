@@ -55,7 +55,7 @@
          (key-user-id (or user-id (and need-index-lookup (getf (read-from-index index-full-file-name where) :user-id))))
          (full-file-name (get-full-file-name class-name (string-downcase (string class-name)) (lambda () key-user-id)))
          (file-contents (fetch-or-create-data full-file-name)))
-    (if where
+    (if (and where (consp (car file-contents)))
         (destructuring-bind (key value)
             ;; TODO - make WHERE handle multiple records
             where ;; NOTE - assuming only 1 "clause"; TODO - support any number of clauses, or a lambda (easier!)
@@ -66,7 +66,7 @@
                                         (lambda (e)
                                           (funcall comparer value (getf e key))) ;; TODO - be more robust than STRING= and EQUALP
                                         file-contents)))))
-        (if (listp (car file-contents))
+        (if (consp (car file-contents))
             (if fetch-multiple
                 (loop for row in file-contents
                       collect
@@ -113,10 +113,7 @@
           content)))
 
 (defmethod make-instance* ((class-name symbol) &key where user-id)
-  ;; parse WHERE, if it exists, to derive the suitable index
-  ;; if no WHERE, or no index found, default to USER-INDEX
-  ;; derive correct file path from index
-  ;; get data "however" - one giant READ, or READ-LINE + primary index
+  ;; TODO - (ERROR) if trying to apply MAKE-INSTANCE* to an index type?
   (let ((file-contents (get-file-contents user-id class-name where)))  ;; TODO - SIGNAL jfh-store:no-data-match if NIL
     (unless (null file-contents)
       (apply #'make-instance class-name file-contents))))
@@ -149,15 +146,27 @@
       (serialize-data-and-get-file-name object save-name)
     (prepend-data full-file-name serialized-data)))
 
+(defmethod update-object ((object user-index) save-name)
+  (multiple-value-bind
+        (full-file-name serialized-data)
+      (serialize-data-and-get-file-name object save-name)
+    (let* ((file-contents (fetch-or-create-data full-file-name))
+           (data-without-new-row (remove-if
+                                  (lambda (e)
+                                    (string= (user-id object) (getf e :user-id)))
+                                  file-contents)))
+      (overwrite-data full-file-name data-without-new-row)
+      (prepend-data full-file-name serialized-data))))
+
 (defmethod update-object ((object user-data) save-name)
   (multiple-value-bind
         (full-file-name serialized-data)
       (serialize-data-and-get-file-name object save-name)
     (let* ((file-contents (fetch-or-create-data full-file-name))
            (data-without-new-row (remove-if
-                                 (lambda (e)
-                                   (= (data-id object) (getf e :data-id)))
-                                 file-contents)))
+                                  (lambda (e)
+                                    (= (data-id object) (getf e :data-id)))
+                                  file-contents)))
       (overwrite-data full-file-name data-without-new-row)
       (prepend-data full-file-name serialized-data))))
 
@@ -167,9 +176,13 @@
       (serialize-data-and-get-file-name object save-name)
     (overwrite-data full-file-name serialized-data)))
 
+(defun get-save-name (object)
+  "Get the default save name for an object."
+  (string-downcase (string (class-name (class-of object)))))
+
 (defmethod save-object ((object flat-file) &key save-name)
   "Default is to pre-pend; nothing should actually call this."
-  (update-object object save-name))
+  (update-object object (or save-name (get-save-name object))))
 
 (defmethod save-object ((object user-data) &key save-name)
   #| TODO - need to make this SMARTER!!
@@ -179,20 +192,20 @@
   - what's the best way to do this?!? Remove the existing line, then prepend the updated one?
   - if data exists AND it DOES NOT have a match for the same data-id, then pre-pend (how it works now)
   |#
-  (update-object object save-name))
+  (update-object object (or save-name (get-save-name object))))
 
 (defmethod save-object ((object user-settings) &key save-name)
-  (overwrite-object object save-name))
+  (overwrite-object object (or save-name (get-save-name object))))
 
 (defmethod save-object ((object user-index) &key save-name)
-  (update-object object save-name))
+  (update-object object (or save-name (get-save-name object))))
 
 (defmethod save-object ((object config-data) &key save-name)
-  (overwrite-object object save-name))
+  (overwrite-object object (or save-name (get-save-name object))))
 
 (defmethod save-index ((index user-index) &key save-name)
   ;; (let ((index-file-name (get-full-file-name (class-name (class-of index)) save-name))))
-  (save-object index :save-name save-name))
+  (save-object index :save-name (or save-name (get-save-name index))))
 
 (defun get-full-file-name (class-name save-name &optional get-user-id)
   ;; derive correct file path from object's class name

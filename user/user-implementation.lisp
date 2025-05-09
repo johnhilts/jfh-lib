@@ -27,9 +27,9 @@
 (defmethod print-object ((application-user application-meta-user) stream)
   "Print application user."
   (print-unreadable-object (application-user stream :type t)
-    (with-accessors ((user-id user-id) (user-login user-login) (create-date create-date) (disable disable)) application-user
+    (with-accessors ((user-id jfh-store:user-id) (user-login user-login) (create-date create-date) (disable disable)) application-user
       (format stream
-	      "User ID: ~A, User Login: ~S, Created: ~A, Disabled: ~:[false~;true~]" user-id user-login create-date disable))))
+	      "User ID: ~S, User Login: ~S, Created: ~A, Disabled: ~:[false~;true~]" user-id user-login create-date disable))))
 
 (defmethod get-user-info ((user-id application-user-id))
   "Search for user info in file system."
