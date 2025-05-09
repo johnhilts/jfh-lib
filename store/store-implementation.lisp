@@ -23,25 +23,40 @@
 ;;     (when (zerop (length data-id))
 ;;       (setf #1# (jfh-utility:generate-unique-token)))))
 
-(defun get-effective-readers (class)
-  "Does the actual work to get the readers for a class. Assumes CLASS inherits JFH-STORE:FLAT-FILE."
+(defmethod print-object ((reader-entry reader-entry) stream)
+  "Print reader entry."
+  (print-unreadable-object (reader-entry stream :type t)
+    (with-accessors ((reader-name reader-name)) reader-entry
+      (format stream
+	      "Reader: \"~A\"" reader-name))))
+
+(defun get-effective-readers-r (class &optional (accumulator nil))
+  "The recursive part"
   (flet ((standard-super-class-p (super-class)
-           (or (eql (find-class 'standard-object) super-class) (eql (find-class 'standard-class) super-class)))
+           (or (eql (find-class 'standard-object) super-class)
+               (eql (find-class 'standard-class) super-class)))
+         (coalesce-to-list (item)
+           (if (listp item)
+               item
+               (list item)))
          (make-reader-entry (slot)
            (make-instance 'reader-entry
                           :reader-name (car (closer-mop:slot-definition-readers slot)) ;; assuming only 1 reader per slot
-                          :slot-boundp-check (lambda (object) (slot-boundp object (closer-mop:slot-definition-name slot))))))
-    (let ((cached-readers (gethash class *effective-readers*)))
-      (if cached-readers
-          cached-readers
-          (let ((direct-readers (mapcar #'make-reader-entry (closer-mop:class-direct-slots class)))
-                (direct-superclasses (remove-if #'standard-super-class-p (closer-mop:class-direct-superclasses class))))
-            (let ((effective-readers (union
-                                      direct-readers
-                                      (if direct-superclasses
-                                          (mapcan #'get-effective-readers direct-superclasses)
-                                          nil))))
-              (setf (gethash class *effective-readers*) effective-readers)))))))
+                          :slot-boundp-check (lambda (object) (slot-boundp object (closer-mop:slot-definition-name slot)))))
+         (unique-readers (accumulator direct-readers)
+           (remove-duplicates (append accumulator direct-readers) :test (lambda (e1 e2) (string= (symbol-name e1) (symbol-name e2))) :key #'reader-name)))
+    (let ((direct-readers (mapcar #'make-reader-entry (closer-mop:class-direct-slots class))) ;; mine used mapcaR
+          (direct-superclasses (remove-if #'standard-super-class-p (closer-mop:class-direct-superclasses class))))
+      (if direct-superclasses
+          (reduce (lambda (acc cur) (get-effective-readers-r cur acc)) direct-superclasses :initial-value (unique-readers accumulator direct-readers))
+          (unique-readers (coalesce-to-list accumulator) direct-readers)))))
+
+(defun get-effective-readers (class)
+  "Does the actual work to get the readers for a class. Assumes CLASS inherits JFH-STORE:FLAT-FILE."
+  (let ((cached-readers (gethash class *effective-readers*)))
+    (if cached-readers
+        cached-readers
+        (setf (gethash class *effective-readers*) (get-effective-readers-r class)))))
 
 (defun choose-where-comparer (value)
   (typecase value
