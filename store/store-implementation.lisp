@@ -271,6 +271,7 @@
     (user-data (format nil "~A/users/~A/" *app-data-path* user-id))))
 
 ;;; READ seems smart enough to handle lines like you'd want it to
+#+dont-run-this
 (let ((data (format nil "(:key 'one :name 'first)~C(:key 'two :name 'second)~C(:key 'three :name 'third)~C" #\Linefeed #\Linefeed #\Linefeed)))
   (let ((file-contents (with-input-from-string (input data)
                          (loop for line = (read input nil nil)
