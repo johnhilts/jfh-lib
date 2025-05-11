@@ -16,4 +16,4 @@
     (setf
      (tbnl:session-value 'the-session-key)
      ;; TODO add 401 if we can't find a match
-     (jfh-user:user-id (jfh-user:get-user-info user-identifier)))))
+     (jfh-store:user-id (jfh-user:get-user-info user-identifier)))))

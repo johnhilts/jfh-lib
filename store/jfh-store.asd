@@ -10,5 +10,4 @@
   :components ((:file package)
                (:file store-protocol)
                (:file file-io)
-               (:file store-implementation)
-               (:file store)))
+               (:file store-implementation)))

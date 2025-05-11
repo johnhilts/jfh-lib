@@ -33,9 +33,7 @@
   "Get configuration info from the file system and hydrate web-configuration object.
 Input: default configuration values.
 Output: web-configuration object."
-  (jfh-store:make-instance-with-partial-data
-   'web-configuration
-   (list :ssl-port '? :http-port '? :static-root '? :cert-path '?)))
+  (jfh-store:make-instance* 'web-configuration))
 
 ;; TODO: should this part go into "internal"? #-end-#
  

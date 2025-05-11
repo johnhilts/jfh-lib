@@ -35,7 +35,7 @@
   (flet ((standard-super-class-p (super-class)
            (or (eql (find-class 'standard-object) super-class)
                (eql (find-class 'standard-class) super-class)))
-         (coalesce-to-list (item)
+         (coalesce-to-list (item) ;; TODO I think this is in onlisp or LoL ... get that name
            (if (listp item)
                item
                (list item)))

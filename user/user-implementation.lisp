@@ -33,7 +33,7 @@
 
 (defmethod get-user-info ((user-id application-user-id))
   "Search for user info in file system."
-  (jfh-store:make-instance* 'application-meta-user :user-id (user-id user-id)))
+  (jfh-store:make-instance* 'application-meta-user :user-id (jfh-store:user-id user-id)))
 
 (defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
@@ -42,8 +42,8 @@
 
 (defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint)) )))
-    (jfh-store:make-instance* 'application-meta-user :user-id (user-id user-index-entry))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,(user-fingerprint user-fingerprint)) )))
+    (jfh-store:make-instance* 'application-meta-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-login application-user-login))
   "Search for secure user info in file system."
