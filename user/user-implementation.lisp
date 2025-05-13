@@ -13,7 +13,7 @@
 (defmethod print-object ((application-user application-user) stream)
   "Print application user."
   (print-unreadable-object (application-user stream :type t)
-    (with-accessors ((user-id user-id) (user-login user-login)) application-user
+    (with-accessors ((user-id jfh-store:user-id) (user-login user-login)) application-user
       (format stream
 	      "User ID: ~A, User Login: ~S" user-id user-login))))
 
@@ -38,7 +38,7 @@
 (defmethod get-user-info ((user-login application-user-login))
   "Search for user info in file system."
   (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login)))))
-    (jfh-store:make-instance* 'application-meta-user :user-id (user-id user-index-entry))))
+    (jfh-store:make-instance* 'application-meta-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod get-user-info ((user-fingerprint application-user-fingerprint))
   "Search for user info in file system."
@@ -48,27 +48,27 @@
 (defmethod get-secure-user-info ((user-login application-user-login))
   "Search for secure user info in file system."
   (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login)))))
-     (jfh-store:make-instance* 'application-secure-user :user-id (user-id user-index-entry))))
+     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
   (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint)))))
-    (jfh-store:make-instance* 'application-secure-user :user-id (user-id user-index-entry))))
+    (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (jfh-store:save-object application-user :readers '(user-id user-login create-date disable) :save-name "application-meta-user")
+  (jfh-store:save-object application-user)
   (when (next-method-p)
     (call-next-method)))
 
 (defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (jfh-store:save-object application-user :readers '(user-password user-fingerprint user-api-key) :save-name "application-secure-user"))
+  (jfh-store:save-object application-user))
 
 (defmethod print-object ((user-index-entry user-login-index-entry) stream)
   "Print user index entry."
   (print-unreadable-object (user-index-entry stream :type t)
-    (with-accessors ((user-id user-id) (user-login user-login)) user-index-entry
+    (with-accessors ((user-id jfh-store:user-id) (user-login user-login)) user-index-entry
       (format stream
 	      "User ID: ~A, User Name: ~S" user-id user-login))))
 
@@ -76,12 +76,12 @@
   "Input: application-user. Output: user index entry."
   (make-instance 'user-login-index-entry
 		 :user-login (user-login application-user)
-		 :user-id (user-id application-user)))
+		 :user-id (jfh-store:user-id application-user)))
 
 (defmethod save-new-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
   (let* ((index-entry (make-user-index-entry application-user)))
-    (jfh-store:save-object index-entry :readers '(user-id user-login)))
+    (jfh-store:save-object index-entry))
   (save-application-user application-user))
 
 ;; TODO add restart so that we have the option to generate the missing user index file
