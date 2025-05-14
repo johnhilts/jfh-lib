@@ -24,4 +24,5 @@
    #:save-index
    #:read-complete-file
    #:write-complete-file
-   #:fetch-or-create-data))
+   #:fetch-or-create-data
+   #:get-next-data-id))

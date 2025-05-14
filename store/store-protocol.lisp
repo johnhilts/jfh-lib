@@ -38,3 +38,4 @@
 (defgeneric save-index (index &key save-name))
 (defgeneric update-data (object save-name))
 (defgeneric get-direct-readers (class))
+(defgeneric get-next-data-id (data-type sequence))
