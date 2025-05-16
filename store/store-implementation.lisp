@@ -16,12 +16,12 @@
 ;;       (format stream
 ;; 	      "Path: ~A, Label: ~A" path label))))
 
-;; (defmethod initialize-instance :after ((user-data user-data) &key)
-;;   "Initializations:
-;; - Set the ID to a unique ID."
-;;   (let ((data-id #1=(slot-value user-data '%data-id)))
-;;     (when (zerop (length data-id))
-;;       (setf #1# (jfh-utility:generate-unique-token)))))
+(defmethod initialize-instance :after ((user-data user-data) &key)
+  "Initializations:
+- Set the ID to a unique ID."
+  (let ((data-id #1=(slot-value user-data '%data-id)))
+    (when (zerop (length data-id))
+      (setf #1# (jfh-utility:generate-unique-token)))))
 
 (defmethod print-object ((reader-entry reader-entry) stream)
   "Print reader entry."
@@ -180,7 +180,7 @@
     (let* ((file-contents (fetch-or-create-data full-file-name))
            (data-without-new-row (remove-if
                                   (lambda (e)
-                                    (= (data-id object) (getf e :data-id)))
+                                    (string= (data-id object) (getf e :data-id)))
                                   file-contents)))
       (overwrite-data full-file-name data-without-new-row)
       (prepend-data full-file-name serialized-data))))
