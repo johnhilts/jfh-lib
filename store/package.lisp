@@ -21,6 +21,7 @@
    #:make-instance-list
    #:get-data
    #:save-object
+   #:delete-object
    #:save-index
    #:read-complete-file
    #:write-complete-file

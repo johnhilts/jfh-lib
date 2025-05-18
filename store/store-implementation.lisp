@@ -191,6 +191,15 @@
       (serialize-data-and-get-file-name object save-name)
     (overwrite-data full-file-name serialized-data)))
 
+(defmethod delete-data ((object user-data) save-name)
+  (let* ((full-file-name (get-full-file-name (class-name (class-of object)) save-name (lambda () (user-id object))))
+         (file-contents (fetch-or-create-data full-file-name))
+         (data-without-deleted-row (remove-if
+                                    (lambda (e)
+                                      (string= (data-id object) (getf e :data-id)))
+                                    file-contents)))
+    (overwrite-data full-file-name data-without-deleted-row)))
+
 (defun get-save-name (object)
   "Get the default save name for an object."
   (string-downcase (string (class-name (class-of object)))))
@@ -221,6 +230,9 @@
 (defmethod save-index ((index user-index) &key save-name)
   ;; (let ((index-file-name (get-full-file-name (class-name (class-of index)) save-name))))
   (save-object index :save-name (or save-name (get-save-name index))))
+
+(defmethod delete-object ((object user-data) &key save-name)
+  (delete-data object (or save-name (get-save-name object))))
 
 (defun get-full-file-name (class-name save-name &optional get-user-id)
   ;; derive correct file path from object's class name

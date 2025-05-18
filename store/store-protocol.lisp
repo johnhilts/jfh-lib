@@ -35,7 +35,9 @@
 (defgeneric make-instance* (class-name &key where user-id))
 (defgeneric serialize-object->list (object))
 (defgeneric save-object (object &key save-name))
+(defgeneric delete-object (object &key save-name))
 (defgeneric save-index (index &key save-name))
 (defgeneric update-data (object save-name))
+(defgeneric delete-data (object save-name))
 (defgeneric get-direct-readers (class))
 
