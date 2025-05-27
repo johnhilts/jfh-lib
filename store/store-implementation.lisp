@@ -48,7 +48,7 @@
          (get-direct-slots (class)
            (let* ((direct-slots (closer-mop:class-direct-slots class))
                   (filtered-slots (if *non-serialized-fields*
-                                      (remove-if (lambda (e) (eql 'user-id (car (closer-mop:slot-definition-readers e)))) direct-slots)
+                                      (remove-if (lambda (e) (find (car (closer-mop:slot-definition-readers e)) *non-serialized-fields* :test #'eql)) direct-slots)
                                       direct-slots)))
              filtered-slots)))
     (let ((direct-readers (mapcar #'make-reader-entry (get-direct-slots class)))
