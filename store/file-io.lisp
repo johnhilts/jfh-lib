@@ -9,6 +9,7 @@
 
 (defun write-complete-file (path list)
   "write complete file all at once"
+  (ensure-directories-exist path)
   (with-open-file (out path :direction :output :if-exists :supersede :if-does-not-exist :create)
     (with-standard-io-syntax
       (prin1 list out)))) ;; print is just like prin1, except it precedes each output with a line break, and ends with a space
