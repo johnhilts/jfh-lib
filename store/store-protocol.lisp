@@ -18,7 +18,7 @@
 (defclass user-data (flat-file)
   ((%data-id :reader data-id :initarg :data-id)
    (%user-id :reader user-id :initarg :user-id))) ;; data in users/{user-id}/ sub-folder
-(defclass user-data-large (data) ()) ;; unused for now, but meant to handle large datasets that are difficult to just READ
+(defclass user-data-large (user-data) ()) ;; unused for now, but meant to handle large datasets that are difficult to just READ
 (defclass config-data (flat-file) ()) ;; configuration data in app root folder
 
 ;; TODO - should these be defined here? Do they have to be ??
@@ -31,6 +31,7 @@
 
 ;; index support
 (defparameter *indexed-user-fields* '(:user-id user-index :user-login user-login-index :user-fingerprint user-fingerprint-index :user-apikey user-apikey-index))
+(defvar *non-serialized-fields* ())
 
 (defgeneric make-instance* (class-name &key where user-id))
 (defgeneric serialize-object->list (object))

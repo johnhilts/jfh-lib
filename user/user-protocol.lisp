@@ -80,9 +80,6 @@
 (defgeneric make-user-index-entry (application-user)
   (:documentation "Input: application-user. Output: user index entry."))
 
-(defgeneric save-user (file-name user-info-list application-user) ;; TODO think of better function/method names
-  (:documentation "Input: file-name, user info list (not a class), application-user and data-store-location. Output: user info list. Persist application user info."))
-
 (defgeneric save-application-user (application-user)
   (:documentation "Input: application-user. Output: application-user. Persist application user info."))
 

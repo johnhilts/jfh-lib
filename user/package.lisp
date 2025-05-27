@@ -20,7 +20,6 @@
    #:user-login-index-entry
    #:make-application-user
    #:read-user-info
-   #:save-user
    #:save-new-application-user
    #:save-application-user
    #:get-user-info

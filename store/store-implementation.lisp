@@ -44,8 +44,14 @@
                           :reader-name (car (closer-mop:slot-definition-readers slot)) ;; assuming only 1 reader per slot
                           :slot-boundp-check (lambda (object) (slot-boundp object (closer-mop:slot-definition-name slot)))))
          (unique-readers (accumulator direct-readers)
-           (remove-duplicates (append accumulator direct-readers) :test (lambda (e1 e2) (string= (symbol-name e1) (symbol-name e2))) :key #'reader-name)))
-    (let ((direct-readers (mapcar #'make-reader-entry (closer-mop:class-direct-slots class))) ;; mine used mapcaR
+           (remove-duplicates (append accumulator direct-readers) :test (lambda (e1 e2) (string= (symbol-name e1) (symbol-name e2))) :key #'reader-name))
+         (get-direct-slots (class)
+           (let* ((direct-slots (closer-mop:class-direct-slots class))
+                  (filtered-slots (if *non-serialized-fields*
+                                      (remove-if (lambda (e) (eql 'user-id (car (closer-mop:slot-definition-readers e)))) direct-slots)
+                                      direct-slots)))
+             filtered-slots)))
+    (let ((direct-readers (mapcar #'make-reader-entry (get-direct-slots class)))
           (direct-superclasses (remove-if #'standard-super-class-p (closer-mop:class-direct-superclasses class))))
       (if direct-superclasses
           (reduce (lambda (acc cur) (get-effective-readers-r cur acc)) direct-superclasses :initial-value (unique-readers accumulator direct-readers))
@@ -132,6 +138,18 @@
   (let ((file-contents (get-file-contents user-id class-name where)))  ;; TODO - SIGNAL jfh-store:no-data-match if NIL
     (unless (null file-contents)
       (apply #'make-instance class-name file-contents))))
+
+(defmethod serialize-object->list ((object user-settings))
+  "Input: an object. Output: plist of accessor values that are serialized to a list. Meant to be used with 1 \"row\" of data."
+  (let ((*non-serialized-fields* '(user-id)))
+    (when (next-method-p)
+      (call-next-method))))
+
+(defmethod serialize-object->list ((object user-data))
+  "Input: an object. Output: plist of accessor values that are serialized to a list. Meant to be used with 1 \"row\" of data."
+  (let ((*non-serialized-fields* '(user-id)))
+    (when (next-method-p)
+      (call-next-method))))
 
 (defmethod serialize-object->list ((object flat-file))
   "Input: an object. Output: plist of accessor values that are serialized to a list. Meant to be used with 1 \"row\" of data."
