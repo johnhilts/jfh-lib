@@ -29,8 +29,6 @@
 (defclass user-apikey-index (user-index)
   ((%user-apikey :reader user-apikey :initarg :user-apikey)))
 
-;; index support
-(defparameter *indexed-user-fields* '(:user-id user-index :user-login user-login-index :user-fingerprint user-fingerprint-index :user-apikey user-apikey-index))
 (defvar *non-serialized-fields* ())
 
 (defgeneric make-instance* (class-name &key where user-id))

@@ -220,6 +220,7 @@
 
 (defun get-save-name (object)
   "Get the default save name for an object."
+  (break)
   (string-downcase (string (class-name (class-of object)))))
 
 (defmethod save-object ((object flat-file) &key save-name)
