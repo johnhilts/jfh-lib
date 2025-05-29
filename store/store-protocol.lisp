@@ -29,7 +29,6 @@
 (defclass user-apikey-index (user-index)
   ((%user-apikey :reader user-apikey :initarg :user-apikey)))
 
-(defvar *serialized-fields* ())
 (defvar *non-serialized-fields* ())
 
 (defgeneric make-instance* (class-name &key where user-id))

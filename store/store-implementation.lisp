@@ -30,26 +30,12 @@
       (format stream
 	      "Reader: \"~A\"" reader-name))))
 
-(defun include-field-p (field)
-  (if *serialized-fields*
-      (find (car (closer-mop:slot-definition-readers field)) *serialized-fields* :test #'eql)
-      t))
-
-(defun exclude-field-p (field)
-  (if *non-serialized-fields*
-      (find (car (closer-mop:slot-definition-readers field)) *non-serialized-fields* :test #'eql)
-      nil))
-
 (defun get-effective-readers-r (class &optional (accumulator nil))
   "The recursive part"
-  (labels ((include-field-pX (field)
-             (if *serialized-fields*
-                 (not (find (car (closer-mop:slot-definition-readers field)) *serialized-fields* :test #'eql))
-                 nil))
-           (exclude-field-pX (field)
+  (labels ((exclude-field-p (field)
              (if *non-serialized-fields*
                  (find (car (closer-mop:slot-definition-readers field)) *non-serialized-fields* :test #'eql)
-                 t)))
+                 nil)))
     (flet ((standard-super-class-p (super-class)
              (or (eql (find-class 'standard-object) super-class)
                  (eql (find-class 'standard-class) super-class)))
@@ -65,8 +51,8 @@
              (remove-duplicates (append accumulator direct-readers) :test (lambda (e1 e2) (string= (symbol-name e1) (symbol-name e2))) :key #'reader-name))
            (get-direct-slots (class)
              (let* ((direct-slots (closer-mop:class-direct-slots class)))
-               (if (or *serialized-fields* *non-serialized-fields*)
-                   (remove-if-not #'include-field-p (remove-if #'exclude-field-p direct-slots))
+               (if *non-serialized-fields*
+                   (remove-if #'exclude-field-p direct-slots)
                    direct-slots))))
       (let ((direct-readers (mapcar #'make-reader-entry (get-direct-slots class)))
             (direct-superclasses (remove-if #'standard-super-class-p (closer-mop:class-direct-superclasses class))))
@@ -237,7 +223,6 @@
 
 (defun get-save-name (object)
   "Get the default save name for an object."
-  (break)
   (string-downcase (string (class-name (class-of object)))))
 
 (defmethod save-object ((object flat-file) &key save-name)

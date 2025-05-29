@@ -25,6 +25,4 @@
    #:save-index
    #:read-complete-file
    #:write-complete-file
-   #:fetch-or-create-data
-   #:get-next-data-id
-   #:*serialized-fields*))
+   #:fetch-or-create-data))
