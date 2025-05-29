@@ -26,4 +26,5 @@
    #:read-complete-file
    #:write-complete-file
    #:fetch-or-create-data
-   #:get-next-data-id))
+   #:get-next-data-id
+   #:*serialized-fields*))

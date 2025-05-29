@@ -55,15 +55,18 @@
   (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint)))))
     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
+(defun get-save-name (class)
+  (string-downcase (string class)))
+
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
-  (jfh-store:save-object application-user)
+  (jfh-store:save-object application-user :save-name (get-save-name 'application-meta-user))
   (when (next-method-p)
     (call-next-method)))
 
 (defmethod save-application-user ((application-user application-secure-user))
   "Input: application-secure-user and data-store-location. Output: serialized application-user. Persist application user info."
-  (jfh-store:save-object application-user))
+  (jfh-store:save-object application-user :save-name (get-save-name 'application-secure-user)))
 
 (defmethod print-object ((user-index-entry user-login-index-entry) stream)
   "Print user index entry."
