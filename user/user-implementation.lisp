@@ -72,16 +72,41 @@
       (format stream
 	      "User ID: ~A, User Name: ~S" user-id user-login))))
 
-(defmethod make-user-index-entry ((application-user application-user))
-  "Input: application-user. Output: user index entry."
+(defmethod make-user-login-index-entry ((application-user application-secure-user))
+  "Input: application-secure-user. Output: user login index entry."
   (make-instance 'user-login-index-entry
 		 :user-login (user-login application-user)
 		 :user-id (jfh-store:user-id application-user)))
 
-(defmethod save-new-application-user ((application-user application-meta-user))
+(defmethod make-user-login-index-entry ((application-user application-secure-user))
+  "Input: application-secure-user. Output: user login index entry."
+  (make-instance 'user-login-index-entry
+		 :user-login (user-login application-user)
+		 :user-id (jfh-store:user-id application-user)))
+
+(defmethod make-user-fingerprint-index-entry ((application-user application-secure-user))
+  "Input: application-secure-user. Output: user fingerprint index entry."
+  (make-instance 'user-fingerprint-index-entry
+		 :user-fingerprint (user-fingerprint application-user)
+		 :user-id (jfh-store:user-id application-user)))
+
+(defmethod make-user-apikey-index-entry ((application-user application-secure-user))
+  "Input: application-secure-user. Output: user API key index entry."
+  (make-instance 'user-api-key-index-entry
+		 :user-apikey (user-api-key application-user)
+		 :user-id (jfh-store:user-id application-user)))
+
+(defmethod save-index ((application-user application-secure-user))
+  (when (user-login application-user)
+    (jfh-store:save-object (make-user-login-index-entry application-user)))
+  (when (user-fingerprint application-user)
+    (jfh-store:save-object (make-user-fingerprint-index-entry application-user)))
+  (when (user-api-key application-user)
+    (jfh-store:save-object (make-user-apikey-index-entry application-user))))
+
+(defmethod save-new-application-user ((application-user application-secure-user))
   "Input: application-meta-user and data-store-location. Output: application-user. Persist application user info."
-  (let* ((index-entry (make-user-index-entry application-user)))
-    (jfh-store:save-object index-entry))
+  (save-index application-user)
   (save-application-user application-user))
 
 ;; TODO add restart so that we have the option to generate the missing user index file

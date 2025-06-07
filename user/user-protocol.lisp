@@ -3,7 +3,7 @@
 (defclass application-user (jfh-store:user-settings)
   ((%user-login
     :reader user-login
-    :initarg :user-login))
+    :initarg :user-login)) ;; TODO can we move this to application-secure-user and just make this a "forwarding" class?
   (:documentation "Application user info - the very bare minimum."))
 
 (defclass application-secure-user (application-user)
@@ -68,6 +68,10 @@
   ()
   (:documentation "User index entry. Link User ID to persisted data."))
 
+(defclass user-api-key-index-entry (jfh-store::user-apikey-index application-user-api-key)
+  ()
+  (:documentation "User index entry. Link User ID to persisted data."))
+
 (defgeneric get-user-index-entry (user-login)
   (:documentation "Input: User name (login). Output: user index entry."))
 
@@ -77,8 +81,17 @@
 (defgeneric get-secure-user-info (user-identifier)
   (:documentation "Input: something that uniquely identifies a user. Output: application-secure-user."))
 
-(defgeneric make-user-index-entry (application-user)
-  (:documentation "Input: application-user. Output: user index entry."))
+(defgeneric save-index (application-secure-user)
+  (:documentation "Input: object with secure info. Output: ?"))
+
+(defgeneric make-user-login-index-entry (application-secure-user)
+  (:documentation "Input: application-secure-user. Output: user login index entry."))
+
+(defgeneric make-user-fingerprint-index-entry (application-secure-user)
+  (:documentation "Input: application-secure-user. Output: user fingerprint index entry."))
+ 
+(defgeneric make-user-api-key-index-entry (application-secure-user)
+  (:documentation "Input: application-secure-user. Output: user API key index entry."))
 
 (defgeneric save-application-user (application-user)
   (:documentation "Input: application-user. Output: application-user. Persist application user info."))
