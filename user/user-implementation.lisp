@@ -101,11 +101,17 @@
 		 :user-id (jfh-store:user-id application-user)))
 
 (defmethod save-index ((application-user application-secure-user))
-  (when (user-login application-user)
+  (when (and
+         (user-login application-user)
+         (plusp (length (user-login application-user))))
     (jfh-store:save-object (make-user-login-index-entry application-user)))
-  (when (user-fingerprint application-user)
+  (when (and
+         (user-fingerprint application-user)
+         (plusp (length (user-fingerprint application-user))))
     (jfh-store:save-object (make-user-fingerprint-index-entry application-user)))
-  (when (user-api-key application-user)
+  (when (and
+         (user-api-key application-user)
+         (plusp (length (user-api-key application-user))))
     (jfh-store:save-object (make-user-apikey-index-entry application-user))))
 
 (defmethod save-new-application-user ((application-user application-secure-user))
