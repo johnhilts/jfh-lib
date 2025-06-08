@@ -45,6 +45,10 @@
   (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,(user-fingerprint user-fingerprint)) )))
     (jfh-store:make-instance* 'application-meta-user :user-id (jfh-store:user-id user-index-entry))))
 
+(defmethod get-secure-user-info ((user-id application-user-id))
+  "Search for user info in file system."
+  (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-id)))
+
 (defmethod get-secure-user-info ((user-login application-user-login))
   "Search for secure user info in file system."
   (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login)))))
@@ -52,7 +56,7 @@
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where '(:user-fingerprint (user-fingerprint user-fingerprint)))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,(user-fingerprint user-fingerprint)))))
     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod save-application-user ((application-user application-meta-user))
