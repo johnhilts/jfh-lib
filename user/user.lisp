@@ -21,11 +21,12 @@
 
 (defun hash-password (plaintext-password)
   "Input: plaintext password. Output: Encrypted password."
-  (let ((cipher
-          (ironclad:byte-array-to-hex-string
-           (ironclad:digest-sequence
-            :sha256
-            (ironclad:ascii-string-to-byte-array plaintext-password)))))
+  (let* ((string-password (if (typep plaintext-password 'string) plaintext-password (format nil "~{~A~^ ~}" (coerce plaintext-password 'list))))
+         (cipher
+           (ironclad:byte-array-to-hex-string
+            (ironclad:digest-sequence
+             :sha256
+             (ironclad:ascii-string-to-byte-array string-password)))))
     (coerce
      (loop for char across cipher
            collect char)

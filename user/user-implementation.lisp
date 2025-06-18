@@ -5,10 +5,14 @@
 - Encrypt the user password. This is meant to prevent the plain text password from being in memory.
 - Set the User ID to a unique ID."
   (let ((user-id #1=(slot-value application-secure-user 'jfh-store::%user-id)) ;; TODO breaking encapsulation with ::
-        (password #2=(slot-value application-secure-user '%user-password)))
+        (password #2=(slot-value application-secure-user '%user-password))
+        (fingerprint #3=(slot-value application-secure-user '%user-fingerprint))
+        (api-key #4=(slot-value application-secure-user '%user-api-key)))
     (when (zerop (length user-id))
       (setf #1# (jfh-utility:generate-unique-token))
-      (setf #2# (hash-password password)))))
+      (setf #2# (hash-password password))
+      (setf #3# (hash-password fingerprint))
+      (setf #4# (hash-password api-key)))))
 
 (defmethod print-object ((application-user application-user) stream)
   "Print application user."
@@ -56,7 +60,7 @@
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,(user-fingerprint user-fingerprint)))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,(hash-password (user-fingerprint user-fingerprint))))))
     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod save-application-user ((application-user application-meta-user))
