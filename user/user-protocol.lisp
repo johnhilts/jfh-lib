@@ -98,3 +98,6 @@
 
 (defgeneric save-new-application-user (application-user)
   (:documentation "Input: application-user. Output: application-user. Persist *NEW* application user info."))
+
+(defgeneric hash-password (password)
+  (:documentation "Input: plaintext password. Output: Encrypted password (string)."))

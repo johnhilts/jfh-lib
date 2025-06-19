@@ -19,15 +19,23 @@
 		 :user-login (user-login application-user)
 		 :user-password (getf user-entry :user-password)))
 
-(defun hash-password (plaintext-password)
-  "Input: plaintext password. Output: Encrypted password."
-  (let* ((string-password (if (typep plaintext-password 'string) plaintext-password (format nil "~{~A~^ ~}" (coerce plaintext-password 'list))))
-         (cipher
-           (ironclad:byte-array-to-hex-string
-            (ironclad:digest-sequence
-             :sha256
-             (ironclad:ascii-string-to-byte-array string-password)))))
+(defun hash-password-core (plaintext-password)
+  "Input: plaintext password. Output: Encrypted password (string)."
+  (let ((cipher
+          (ironclad:byte-array-to-hex-string
+           (ironclad:digest-sequence
+            :sha256
+            (ironclad:ascii-string-to-byte-array plaintext-password)))))
     (coerce
      (loop for char across cipher
            collect char)
      'simple-string)))
+
+(defmethod hash-password ((plaintext-password string))
+  "Input: plaintext password. Output: Encrypted password (string)."
+  (hash-password-core plaintext-password))
+
+(defmethod hash-password ((plaintext-password simple-vector))
+  "Input: plaintext password. Output: Encrypted password (string)."
+  (let ((string-password (format nil "~{~A~^ ~}" (coerce plaintext-password 'list))))
+    (hash-password-core string-password)))
