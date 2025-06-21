@@ -7,12 +7,14 @@
   (let ((user-id #1=(slot-value application-secure-user 'jfh-store::%user-id)) ;; TODO breaking encapsulation with ::
         (password #2=(slot-value application-secure-user '%user-password))
         (fingerprint #3=(slot-value application-secure-user '%user-fingerprint))
-        (api-key #4=(slot-value application-secure-user '%user-api-key)))
+        (api-key #4=(slot-value application-secure-user '%user-api-key))
+        (salt #5=(slot-value application-secure-user '%salt)))
     (when (zerop (length user-id))
+      (setf #5# (ironclad:make-random-salt))
       (setf #1# (jfh-utility:generate-unique-token))
-      (setf #2# (hash-password password))
-      (setf #3# (hash-password fingerprint))
-      (setf #4# (hash-password api-key)))))
+      (setf #2# (hash-password password salt))
+      (setf #3# (hash-password fingerprint salt))
+      (setf #4# (hash-password api-key salt)))))
 
 (defmethod print-object ((application-user application-user) stream)
   "Print application user."
@@ -60,7 +62,8 @@
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,(hash-password (user-fingerprint user-fingerprint))))))
+  (let* ((password-hash (hash-password (user-fingerprint user-fingerprint) (salt user-fingerprint)))
+         (user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,password-hash))))
     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod save-application-user ((application-user application-meta-user))
@@ -86,16 +89,11 @@
 		 :user-login (user-login application-user)
 		 :user-id (jfh-store:user-id application-user)))
 
-(defmethod make-user-login-index-entry ((application-user application-secure-user))
-  "Input: application-secure-user. Output: user login index entry."
-  (make-instance 'user-login-index-entry
-		 :user-login (user-login application-user)
-		 :user-id (jfh-store:user-id application-user)))
-
 (defmethod make-user-fingerprint-index-entry ((application-user application-secure-user))
   "Input: application-secure-user. Output: user fingerprint index entry."
   (make-instance 'user-fingerprint-index-entry
 		 :user-fingerprint (user-fingerprint application-user)
+                 :salt (salt application-user)
 		 :user-id (jfh-store:user-id application-user)))
 
 (defmethod make-user-apikey-index-entry ((application-user application-secure-user))

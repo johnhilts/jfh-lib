@@ -19,7 +19,7 @@
 		 :user-login (user-login application-user)
 		 :user-password (getf user-entry :user-password)))
 
-(defun hash-password-core (plaintext-password)
+(defun hash-password-core-OLD (plaintext-password)
   "Input: plaintext password. Output: Encrypted password (string)."
   (let ((cipher
           (ironclad:byte-array-to-hex-string
@@ -31,11 +31,18 @@
            collect char)
      'simple-string)))
 
-(defmethod hash-password ((plaintext-password string))
+(defmethod hash-password ((plaintext-password string) salt)
   "Input: plaintext password. Output: Encrypted password (string)."
-  (hash-password-core plaintext-password))
+  (hash-password-core plaintext-password salt))
 
-(defmethod hash-password ((plaintext-password simple-vector))
+(defmethod hash-password ((plaintext-password simple-vector) salt)
   "Input: plaintext password. Output: Encrypted password (string)."
   (let ((string-password (format nil "~{~A~^ ~}" (coerce plaintext-password 'list))))
-    (hash-password-core string-password)))
+    (hash-password-core string-password salt)))
+
+(defun hash-password-core (plaintext-password salt)
+  (ironclad:byte-array-to-hex-string
+   (ironclad:pbkdf2-hash-password 
+    (ironclad:ascii-string-to-byte-array plaintext-password)
+    :salt (ironclad:ascii-string-to-byte-array salt)
+    :iterations 100000)))

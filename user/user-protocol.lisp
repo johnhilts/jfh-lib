@@ -18,6 +18,10 @@
    (%user-api-key
     :reader user-api-key
     :initarg :user-api-key
+    :initform "")
+   (%salt
+    :reader salt
+    :initarg :salt
     :initform ""))
   (:documentation "Application user secure info."))
 
@@ -65,7 +69,10 @@
   (:documentation "User index entry. Link User ID to persisted data."))
 
 (defclass user-fingerprint-index-entry (jfh-store::user-fingerprint-index application-user-fingerprint)
-  ()
+  ((%salt
+    :reader salt
+    :initarg :salt
+    :initform ""))
   (:documentation "User index entry. Link User ID to persisted data."))
 
 (defclass user-api-key-index-entry (jfh-store::user-apikey-index application-user-api-key)
@@ -99,5 +106,5 @@
 (defgeneric save-new-application-user (application-user)
   (:documentation "Input: application-user. Output: application-user. Persist *NEW* application user info."))
 
-(defgeneric hash-password (password)
+(defgeneric hash-password (password salt)
   (:documentation "Input: plaintext password. Output: Encrypted password (string)."))
