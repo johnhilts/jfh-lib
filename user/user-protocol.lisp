@@ -6,23 +6,33 @@
     :initarg :user-login)) ;; TODO can we move this to application-secure-user and just make this a "forwarding" class?
   (:documentation "Application user info - the very bare minimum."))
 
-(defclass application-secure-user (application-user)
+(defclass application-password ()
   ((%user-password
     :reader user-password
     :initarg :user-password
-    :initform "")
-   (%user-fingerprint
-    :reader user-fingerprint
-    :initarg :user-fingerprint
-    :initform #())
-   (%user-api-key
-    :reader user-api-key
-    :initarg :user-api-key
     :initform "")
    (%salt
     :reader salt
     :initarg :salt
     :initform ""))
+  (:documentation "Application password."))
+
+(defclass application-fingerprint ()
+  ((%user-fingerprint
+    :reader user-fingerprint
+    :initarg :user-fingerprint
+    :initform #()))
+  (:documentation "Application fingerprint."))
+
+(defclass application-api-key ()
+  ((%user-api-key
+    :reader user-api-key
+    :initarg :user-api-key
+    :initform ""))
+  (:documentation "Application API Key."))
+
+(defclass application-secure-user (application-user application-password application-fingerprint application-api-key)
+  ()
   (:documentation "Application user secure info."))
 
 (defclass application-meta-user (application-user)
@@ -69,10 +79,7 @@
   (:documentation "User index entry. Link User ID to persisted data."))
 
 (defclass user-fingerprint-index-entry (jfh-store::user-fingerprint-index application-user-fingerprint)
-  ((%salt
-    :reader salt
-    :initarg :salt
-    :initform ""))
+  ()
   (:documentation "User index entry. Link User ID to persisted data."))
 
 (defclass user-api-key-index-entry (jfh-store::user-apikey-index application-user-api-key)
@@ -106,5 +113,5 @@
 (defgeneric save-new-application-user (application-user)
   (:documentation "Input: application-user. Output: application-user. Persist *NEW* application user info."))
 
-(defgeneric hash-password (password salt)
-  (:documentation "Input: plaintext password. Output: Encrypted password (string)."))
+(defgeneric hash-password (application-security)
+  (:documentation "Input: plaintext password / fingerprint / API Key. Output: Encrypted cipher (string)."))

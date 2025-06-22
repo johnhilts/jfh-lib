@@ -12,9 +12,9 @@
     (when (zerop (length user-id))
       (setf #5# (ironclad:make-random-salt))
       (setf #1# (jfh-utility:generate-unique-token))
-      (setf #2# (hash-password password salt))
-      (setf #3# (hash-password fingerprint salt))
-      (setf #4# (hash-password api-key salt)))))
+      (setf #2# (hash-password (make-instance 'application-password :user-password password :salt salt)))
+      (setf #3# (hash-password (make-instance 'application-fingerprint :user-fingerprint fingerprint)))
+      (setf #4# (hash-password (make-instance 'application-api-key :user-api-key api-key))))))
 
 (defmethod print-object ((application-user application-user) stream)
   "Print application user."
@@ -62,7 +62,8 @@
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))
   "Search for secure user info in file system."
-  (let* ((password-hash (hash-password (user-fingerprint user-fingerprint) (salt user-fingerprint)))
+  (let* ((fingerprint (make-instance 'application-fingerprint :user-fingerprint (user-fingerprint user-fingerprint)))
+         (password-hash (hash-password fingerprint))
          (user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,password-hash))))
     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
