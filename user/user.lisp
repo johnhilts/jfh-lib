@@ -47,9 +47,13 @@
   (hash-password-core (user-api-key application-api-key) *hard-coded-salt*))
 
 (defun hash-password-core (plaintext-password salt)
-  (let ((salt-string (format nil "~{~A~^ ~}" (coerce salt 'list))))
-    (ironclad:byte-array-to-hex-string
-     (ironclad:pbkdf2-hash-password 
-      (ironclad:ascii-string-to-byte-array plaintext-password)
-      :salt (ironclad:ascii-string-to-byte-array salt-string)
-      :iterations 100000))))
+  (let* ((salt-string (format nil "~{~A~^ ~}" (coerce salt 'list)))
+         (cipher (ironclad:byte-array-to-hex-string
+                  (ironclad:pbkdf2-hash-password 
+                   (ironclad:ascii-string-to-byte-array plaintext-password)
+                   :salt (ironclad:ascii-string-to-byte-array salt-string)
+                   :iterations 100000))))
+    (coerce
+     (loop for char across cipher
+           collect char)
+     'simple-string)))
