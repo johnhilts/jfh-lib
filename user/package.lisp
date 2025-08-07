@@ -18,6 +18,7 @@
    #:user-fingerprint
    #:user-index-entry
    #:user-login-index-entry
+   #:user-api-key-index-entry
    #:make-application-user
    #:read-user-info
    #:save-new-application-user

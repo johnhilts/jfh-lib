@@ -12,7 +12,10 @@
     :initarg :static-root)
    (%cert-path
     :reader cert-path
-    :initarg :cert-path))
+    :initarg :cert-path)
+   (%accept-client-cert
+    :reader accept-client-cert
+    :initarg :accept-client-cert))
   (:documentation "Web Application configurations."))
 
 (defclass web-application ()

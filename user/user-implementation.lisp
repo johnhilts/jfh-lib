@@ -68,6 +68,14 @@
          (user-index-entry (jfh-store:make-instance* 'user-fingerprint-index-entry :where `(:user-fingerprint ,password-hash))))
     (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
+(defmethod get-secure-user-info ((user-api-key application-user-api-key))
+  "Search for secure user info in file system."
+  (let* ((api-key (make-instance 'application-api-key :user-api-key (user-api-key user-api-key)))
+         (password-hash (hash-password api-key))
+         (user-index-entry (jfh-store:make-instance* 'user-api-key-index-entry :where `(:user-api-key ,password-hash))))
+    (when user-index-entry
+      (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry)))))
+
 (defmethod save-application-user ((application-user application-meta-user))
   "Input: application-meta-user and data-store-location. Output: serialized application-meta-user. Persist application user info."
   (jfh-store:save-object application-user)
@@ -95,13 +103,13 @@
   "Input: application-secure-user. Output: user fingerprint index entry."
   (make-instance 'user-fingerprint-index-entry
 		 :user-fingerprint (user-fingerprint application-user)
-                 :salt (salt application-user)
+                 ;; :salt (salt application-user)
 		 :user-id (jfh-store:user-id application-user)))
 
 (defmethod make-user-apikey-index-entry ((application-user application-secure-user))
   "Input: application-secure-user. Output: user API key index entry."
   (make-instance 'user-api-key-index-entry
-		 :user-apikey (user-api-key application-user)
+		 :user-api-key (user-api-key application-user)
 		 :user-id (jfh-store:user-id application-user)))
 
 (defmethod save-index ((application-user application-secure-user))

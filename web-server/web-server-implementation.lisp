@@ -120,10 +120,12 @@
     (with-accessors
           ((http-port http-port)
            (ssl-port ssl-port)
-	   (static-root static-root))
+	   (static-root static-root)
+           (accept-client-cert accept-client-cert))
         web-configuration
       (format stream
-              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S" http-port ssl-port static-root))))
+              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~]"
+              http-port ssl-port static-root accept-client-cert))))
 
 (defmethod print-object ((web-application web-application) stream)
   "Print web application."
@@ -138,10 +140,10 @@
   (flet ((make-acceptor-instances ()
            (with-accessors ((ssl-port ssl-port) (http-port http-port) (cert-path cert-path)) web-configuration
              (let ((server-key-path (format nil "~A/server.key" cert-path))
-                   (server-crt-path (format nil "~A/server.crt" cert-path)))
+                   (server-crt-path (format nil "~A/server.crt" cert-path))
+                   (ssl-acceptor-type (if (accept-client-cert web-configuration) 'ssl-client-cert-acceptor 'tbnl:easy-ssl-acceptor)))
                (values
-                ;; TODO: need to add the key paths to configuration!! Then, can we do a "make-instance-from-data-store"?
-                (make-instance 'ssl-client-cert-acceptor :port ssl-port :ssl-privatekey-file server-key-path :ssl-certificate-file server-crt-path) ;; NOTE: replaced pathname with string
+                (make-instance ssl-acceptor-type :port ssl-port :ssl-privatekey-file server-key-path :ssl-certificate-file server-crt-path)
                 (make-instance 'http-to-https-acceptor :port http-port :ssl-port ssl-port)))))
          (start-hunchentoot-by-http-protocol-type (acceptor-instance acceptor-type) ;; TODO: "acceptor-instance" is redundant!!
            (prog1

@@ -117,7 +117,7 @@
     (destructuring-bind
         (key value)
         where
-      (let ((comparer (if (vectorp value) #'equal #'string=)))
+      (let ((comparer (if (stringp value) #'string= #'equal)))
         (find-if
          (lambda (e) (funcall comparer value (getf e key)))
          index-contents)))))
@@ -270,8 +270,8 @@
                'user-login-index)
               ((getf where :user-fingerprint)
                'user-fingerprint-index)
-              ((getf where :user-apikey)
-               'user-apikey-index)
+              ((getf where :user-api-key)
+               'user-api-key-index-entry)
               (t nil))))
       (if index-name
           (string-downcase (symbol-name index-name))

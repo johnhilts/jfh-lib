@@ -26,8 +26,8 @@
   ((%user-login :reader user-login :initarg :user-login)))
 (defclass user-fingerprint-index (user-index)
   ((%user-fingerprint :reader user-fingerprint :initarg :user-fingerprint)))
-(defclass user-apikey-index (user-index)
-  ((%user-apikey :reader user-apikey :initarg :user-apikey)))
+(defclass user-api-key-index (user-index)
+  ((%user-api-key :reader user-api-key :initarg :user-api-key)))
 
 (defvar *non-serialized-fields* ())
 

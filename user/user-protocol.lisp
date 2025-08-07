@@ -82,7 +82,7 @@
   ()
   (:documentation "User index entry. Link User ID to persisted data."))
 
-(defclass user-api-key-index-entry (jfh-store::user-apikey-index application-user-api-key)
+(defclass user-api-key-index-entry (jfh-store::user-api-key-index application-user-api-key)
   ()
   (:documentation "User index entry. Link User ID to persisted data."))
 

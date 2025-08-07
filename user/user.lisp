@@ -23,12 +23,14 @@
               "Note: to produce this value, I used (LET ((*PRINT-READABLY* T)) (PRIN1 (IRONCLAD:MAKE-RANDOM-SALT))) which adds the type annotations")
 
 (defun hash-password-core (password salt)
-  (let ((string-password (if (stringp password) password (format nil "~{~A~^ ~}" (coerce password 'list)))))
-    (ironclad:byte-array-to-hex-string
-     (ironclad:pbkdf2-hash-password 
-      (ironclad:ascii-string-to-byte-array string-password)
-      :salt salt
-      :iterations 100000))))
+  (if (zerop (length password))
+      ""
+      (let ((string-password (if (stringp password) password (format nil "~{~A~^ ~}" (coerce password 'list)))))
+        (ironclad:byte-array-to-hex-string
+         (ironclad:pbkdf2-hash-password 
+          (ironclad:ascii-string-to-byte-array string-password)
+          :salt salt
+          :iterations 100000)))))
 
 (defmethod hash-password ((application-password application-password))
   "Input: plaintext password. Output: Encrypted password (string)."
