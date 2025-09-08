@@ -4,8 +4,6 @@
 
 (defvar *web-configuration*)
 
-(defparameter *client-cert-missing* nil)
-
 (defparameter *static-path-maps* ())
 
 ;; TODO: should this part go into "internal"? #-start-#
