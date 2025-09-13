@@ -56,52 +56,41 @@
 (defmethod tbnl:initialize-connection-stream ((acceptor ssl-client-cert-acceptor) stream)
   "Initialize SSL connection stream with client cert verification. If the client fails to present a valid cert, abort quietly."
   (when (typep stream 'stream)
-    (handler-case
-        (let* ((cert-path (get-cert-path))
-               (ctx (cl+ssl:make-context
-                     :verify-mode cl+ssl:+ssl-verify-peer+
-                     :verify-depth 1
-                     :verify-location (format nil "~A/ca.crt" cert-path)
-                     :certificate-chain-file (format nil "~A/ca.crt" cert-path)
-                     :options (list cl+ssl::+SSL-OP-ALL+ cl+ssl::+SSL-OP-IGNORE-UNEXPECTED-EOF+)
-                     :disabled-protocols (list cl+ssl::+SSL-OP-NO-SSLV2+ cl+ssl::+SSL-OP-NO-SSLV3+ cl+ssl::+SSL-OP-NO-TLSv1+ cl+ssl::+SSL-OP-NO-TLSv1-1+ cl+ssl::+SSL-OP-NO-TLSv1-3+))))
-          (cl+ssl:with-global-context (ctx :auto-free-p t)
-            (let ((server-stream (cl+ssl:make-ssl-server-stream
-                                  stream
-                                  :certificate (format nil "~A/server.crt" cert-path)
-                                  :key (format nil "~A/server.key" cert-path))))
-              ;; Attempt to extract client certificate
+    (let* ((cert-path (get-cert-path))
+           (ctx (cl+ssl:make-context
+                 :verify-mode cl+ssl:+ssl-verify-peer+
+                 :verify-depth 1
+                 :verify-location (format nil "~A/ca.crt" cert-path)
+                 :certificate-chain-file (format nil "~A/ca.crt" cert-path)
+                 :options (list cl+ssl::+SSL-OP-ALL+ cl+ssl::+SSL-OP-IGNORE-UNEXPECTED-EOF+)
+                 :disabled-protocols (list cl+ssl::+SSL-OP-NO-SSLV2+ cl+ssl::+SSL-OP-NO-SSLV3+ cl+ssl::+SSL-OP-NO-TLSv1+ cl+ssl::+SSL-OP-NO-TLSv1-1+ cl+ssl::+SSL-OP-NO-TLSv1-3+))))
+      (cl+ssl:with-global-context (ctx :auto-free-p t)
+        (let ((server-stream (cl+ssl:make-ssl-server-stream
+                              stream
+                              :certificate (format nil "~A/server.crt" cert-path)
+                              :key (format nil "~A/server.key" cert-path))))
+          ;; Attempt to extract client certificate
+          (handler-case
               (let ((client-cert (cl+ssl:ssl-stream-x509-certificate server-stream)))
-                (if client-cert
-                    ;; (progn
-                    ;;   (let ((fingerprint (cl+ssl:certificate-fingerprint client-cert :sha256))
-                    ;;         ;; (not-before (cl+ssl:certificate-not-before-time client-cert))
-                    ;;         ;; (not-after (cl+ssl:certificate-not-after-time client-cert))
-                    ;;         ;; (common-names (cl+ssl:certificate-subject-common-names client-cert))
-                    ;;         )
-                    ;;     ;; (format t "~&Client Cert: ~A~%Fingerprint: ~A~%Valid from: ~A to ~A~%Subject CNs: ~A~%"
-                    ;;     ;;         client-cert fingerprint not-before not-after common-names)
-                    ;;     )
-                    server-stream
-                    ;; No client cert presented
-                    (progn
-                      (format t "~&No client certificate presented. Connection ignored.~%")
-                      nil))))))
-      (cl+ssl::ssl-error (e)
-        ;; SSL handshake failed—likely due to missing or invalid client cert
-        (format t "~&[initialize-connection-stream] SSL error during handshake: ~A~%" e)
-        nil)
-      (sb-bsd-sockets:socket-error (e)
-        ;; Catch low-level stream/socket errors
-        (format t "~&[initialize-connection-stream] Socket error: ~A~%" e)
-        nil)
-      (stream-error (e)
-        (format t "~&[initialize-connection-stream] Stream error: ~A~%" e)
-        nil)
-      (error (e)
-        ;; Catch-all for other unexpected errors
-        (format t "~&[initialize-connection-stream] Unexpected error during stream initialization: ~A~%" e)
-        nil))))
+                (unless client-cert
+                  ;; No client cert presented
+                  (format t "~&No client certificate presented. Connection ignored.~%"))
+                server-stream)
+            (cl+ssl::ssl-error (e)
+              ;; SSL handshake failed—likely due to missing or invalid client cert
+              (format t "~&[initialize-connection-stream] SSL error during handshake: ~A~%" e)
+              server-stream)
+            (sb-bsd-sockets:socket-error (e)
+              ;; Catch low-level stream/socket errors
+              (format t "~&[initialize-connection-stream] Socket error: ~A~%" e)
+              server-stream)
+            (stream-error (e)
+              (format t "~&[initialize-connection-stream] Stream error: ~A~%" e)
+              server-stream)
+            (error (e)
+              ;; Catch-all for other unexpected errors
+              (format t "~&[initialize-connection-stream] Unexpected error during stream initialization: ~A~%" e)
+              server-stream)))))))
 
 (defmethod tbnl:acceptor-dispatch-request ((acceptor http-to-https-acceptor) request)
   ;; (let ((*break-on-signals* 'error))
