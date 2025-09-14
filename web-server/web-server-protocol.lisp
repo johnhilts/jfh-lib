@@ -15,7 +15,10 @@
     :initarg :cert-path)
    (%accept-client-cert
     :reader accept-client-cert
-    :initarg :accept-client-cert))
+    :initarg :accept-client-cert)
+   (%enable-mfa
+    :reader enable-mfa
+    :initarg :enable-mfa))
   (:documentation "Web Application configurations."))
 
 (defclass web-application ()
@@ -61,5 +64,8 @@
   ()
   (:report (lambda (condition stream) (format stream "Unable to find certificate folder: ~A." (file-error-pathname condition)))))
 
-(defgeneric fetch-or-create-user-session (user-identifier)
+(defgeneric fetch-or-create-user-session (user-identifier) 
   (:documentation "Fetch an existing or create a new user session based on the user-identifier."))
+
+(defgeneric prompt-mfa (request user-id) 
+  (:documentation "Prompt for Multi-factor authentication. Redirect to another page to prompt input."))

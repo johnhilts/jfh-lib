@@ -12,8 +12,20 @@
 
 (defmethod jfh-web-server:fetch-or-create-user-session ((user-identifier jfh-user:application-user-fingerprint))
   "Establish the user session in Hunchentoot's session apparatus + in cookies."
-  (unless (tbnl:session-value 'the-session-key)
-    (setf
-     (tbnl:session-value 'the-session-key)
-     ;; TODO add 401 if we can't find a match
-     (jfh-store:user-id (jfh-user:get-secure-user-info user-identifier)))))
+  (if (tbnl:session-value 'the-session-key)
+      (tbnl:session-value 'the-session-key)
+      (setf
+       (tbnl:session-value 'the-session-key) ;; TODO - is this thread safe??
+       ;; TODO add 401 if we can't find a match
+       (let ((user-id (jfh-store:user-id (jfh-user:get-secure-user-info user-identifier))))
+         (remhash user-id *mfa-checks*)
+         user-id))))
+
+(defparameter *mfa-checks* (make-hash-table)) ;; track MFA checks by user
+
+;; TODO: add flag that sets the limit of "recency"
+(defmethod jfh-web-server:prompt-mfa ((tbnl:*request* tbnl:request) user-id)
+  "Redirect to MFA prompt. The conditions are: 1. No recent MFA check."
+  (let ((last-mfa-check (gethash user-id *mfa-checks* 'not-found)))
+    (when (eql 'not-found last-mfa-check) ;; TODO add time check too
+      (tbnl:redirect "/prompt-mfa"))))

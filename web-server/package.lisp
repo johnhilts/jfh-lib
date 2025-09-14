@@ -12,5 +12,6 @@
    #:add-static-path-map
    #:define-api-endpoint
    #:fetch-or-create-user-session
+   #:prompt-mfa
    #:verb
    #:web))

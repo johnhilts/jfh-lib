@@ -11,13 +11,15 @@
     (format nil "~W" (tbnl:get-peer-ssl-certificate)))))
 
 ;; TODO: should this part go into "internal"? #-start-#
-;; TODO: whether this even runs should be based on configuration
 (defmethod tbnl:handle-request :around ((tbnl:*acceptor* ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
   (unless (can-skip-certificate-auth)
     (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
       (format t "Link fingerprint to session using: ~A~%" client-id)
-      (jfh-web-server:fetch-or-create-user-session user-identifier)))
+      (let ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
+            (mfa-in-progress (search "-mfa" (tbnl:script-name tbnl:*request*)))) ;; TODO need to ignore static resources
+        (when (and user-id (enable-mfa *web-configuration*) (not mfa-in-progress))
+          (prompt-mfa tbnl:*request* user-id)))))
   (when (next-method-p)
     (call-next-method)))
 
@@ -110,11 +112,12 @@
           ((http-port http-port)
            (ssl-port ssl-port)
 	   (static-root static-root)
-           (accept-client-cert accept-client-cert))
+           (accept-client-cert accept-client-cert)
+           (enable-mfa enable-mfa))
         web-configuration
       (format stream
-              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~]"
-              http-port ssl-port static-root accept-client-cert))))
+              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~], Enable MFA: ~:[false~;true~]"
+              http-port ssl-port static-root accept-client-cert enable-mfa))))
 
 (defmethod print-object ((web-application web-application) stream)
   "Print web application."
