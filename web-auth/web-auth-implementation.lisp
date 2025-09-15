@@ -23,9 +23,10 @@
 
 (defparameter *mfa-checks* (make-hash-table)) ;; track MFA checks by user
 
-;; TODO: add flag that sets the limit of "recency"
 (defmethod jfh-web-server:prompt-mfa ((tbnl:*request* tbnl:request) user-id)
   "Redirect to MFA prompt. The conditions are: 1. No recent MFA check."
-  (let ((last-mfa-check (gethash user-id *mfa-checks* 'not-found)))
-    (when (eql 'not-found last-mfa-check) ;; TODO add time check too
-      (tbnl:redirect "/prompt-mfa"))))
+  (when (needs-mfa-check user-id)
+    (tbnl:redirect "/prompt-mfa"))
+  
+  ;; sliding MFA expiration
+  (setf (gethash user-id *mfa-checks*) (get-universal-time)))
