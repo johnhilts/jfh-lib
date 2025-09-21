@@ -26,7 +26,7 @@
 (defmethod jfh-web-server:prompt-mfa ((tbnl:*request* tbnl:request) user-id)
   "Redirect to MFA prompt. The conditions are: 1. No recent MFA check."
   (when (needs-mfa-check user-id)
-    (tbnl:redirect "/prompt-mfa"))
+    (tbnl:redirect (format nil "/prompt-mfa?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   
   ;; sliding MFA expiration
   (setf (gethash user-id *mfa-checks*) (get-universal-time)))
