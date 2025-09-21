@@ -4,5 +4,6 @@
   (:use #:common-lisp)
   (:export
    #:generate-unique-token
-   ;; #:serialize-to-json
-   #:string-starts-with))
+   #:string-starts-with
+   #:hex-string-to-base10-list
+   #:byte-array-to-hex-string))

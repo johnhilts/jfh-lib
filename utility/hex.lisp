@@ -1,33 +1,6 @@
 ;;;; hex utility
 (in-package #:jfh-utility)
 
-;; 65fcaf48b497fd06e9db800fab4dae277b08fe77
-;; (code-char 101) #\e (char-code #\e) 101
-;; (code-char 65) #\A
-;; (parse-integer "65" :radix 16) 101
-
-(defun hex-string-to-base10-list-OLD (hex)
-  "Take a long hex string such as \"65fcaf48b497fd06e9db800fab4dae277b08fe77\" and convert it to a list of base 10 integers"
-  (with-input-from-string (input hex)
-    (remove-if
-     #'null
-     (loop for char = (read-char input nil nil) then (read-char input nil nil)
-           for i = 1 then (incf i)
-           for acc = char then (if acc (list acc char) char)
-           while char
-           collect
-           (when (zerop (mod i 2))
-             (prog1
-                 (format nil "~A"
-                         (parse-integer
-                          (reduce
-                           (lambda (acc cur)
-                             (concatenate 'string acc (string cur)))
-                           (format nil "~{~A~}" acc)
-                           :initial-value "")
-                          :radix 16))
-               (setf acc nil)))))))
-
 (defun ensure-proper-hex-string (hex)
   (unless (evenp (length hex))
     (cerror "Hex string must have an even number of characters." hex)

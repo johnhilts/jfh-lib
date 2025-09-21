@@ -6,11 +6,12 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:hunchentoot #:jfh-user #:jfh-web-server)
+  :depends-on (#:hunchentoot #:jfh-user #:jfh-web-server #:cl-base32 #:cl-one-time-passwords)
   :components ((:file package)
                (:file macros)
                (:file web-auth-protocol)
                (:file web-auth)
+               (:file mfa)
                (:file web-auth-implementation)
                (:file certificate-util)
                (:file pages)))
