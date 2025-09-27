@@ -31,7 +31,14 @@
     :initform ""))
   (:documentation "Application API Key."))
 
-(defclass application-secure-user (application-user application-password application-fingerprint application-api-key)
+(defclass application-mfa-key ()
+  ((%user-mfa-key
+    :reader user-mfa-key
+    :initarg :user-mfa-key
+    :initform ""))
+  (:documentation "Application MFA Key."))
+
+(defclass application-secure-user (application-user application-password application-fingerprint application-api-key application-mfa-key)
   ()
   (:documentation "Application user secure info."))
 

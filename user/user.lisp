@@ -43,3 +43,7 @@
 (defmethod hash-password ((application-api-key application-api-key))
   "Input: plaintext password. Output: Encrypted password (string)."
   (hash-password-core (user-api-key application-api-key) *hard-coded-salt*))
+
+(defmethod hash-password ((application-mfa-key application-mfa-key))
+  "Input: plaintext password. Output: Encrypted password (string)."
+  (hash-password-core (user-mfa-key application-mfa-key) *hard-coded-salt*))
