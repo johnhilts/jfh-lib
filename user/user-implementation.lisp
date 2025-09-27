@@ -8,16 +8,14 @@
         (password #2=(slot-value application-secure-user '%user-password))
         (fingerprint #3=(slot-value application-secure-user '%user-fingerprint))
         (api-key #4=(slot-value application-secure-user '%user-api-key))
-        (salt #5=(slot-value application-secure-user '%salt))
-        (mfa-key #6=(slot-value application-secure-user '%user-mfa-key)))
+        (salt #5=(slot-value application-secure-user '%salt)))
     (when (zerop (length user-id))
       (setf #5# (ironclad:make-random-salt)
             salt #5#)
       (setf #1# (jfh-utility:generate-unique-token))
       (setf #2# (hash-password (make-instance 'application-password :user-password password :salt salt)))
       (setf #3# (hash-password (make-instance 'application-fingerprint :user-fingerprint fingerprint)))
-      (setf #4# (hash-password (make-instance 'application-api-key :user-api-key api-key)))
-      (setf #6# (hash-password (make-instance 'application-mfa-key :user-mfa-key mfa-key)))))) ;; TODO can't hash MFA key!
+      (setf #4# (hash-password (make-instance 'application-api-key :user-api-key api-key))))))
 
 (defmethod print-object ((application-user application-user) stream)
   "Print application user."
