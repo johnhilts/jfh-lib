@@ -19,15 +19,11 @@
       (parse-integer number)
     (error () (return-from parse-to-integer-or-default default))))
 
-(defun validate-mfa-totp (user-id input-totp)
+(defun validate-mfa-totp (user-id input-totp &optional (minute-tolerance 0))
   "Validate TOTP for previous, current, and next minute."
   (let* ((mfa-key (get-mfa-key user-id))
-         (2-minutes-ago-totp (totp:totp mfa-key -120))
-         (1-minute-ago-totp (totp:totp mfa-key -60))
-         (current-totp (totp:totp mfa-key))
-         (1-minute-from-now-totp (totp:totp mfa-key 60))
-         (2-minutes-from-now-totp (totp:totp mfa-key 120))
-         (valid-totps (list 2-minutes-ago-totp 1-minute-ago-totp current-totp 1-minute-from-now-totp 2-minutes-from-now-totp))
+         (repeats (1+ (* 2 minute-tolerance)))
+         (valid-totps (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats collect (totp:totp mfa-key i)))
          (parsed-totp (parse-to-integer-or-default input-totp)))
     (some
      (lambda (e)
