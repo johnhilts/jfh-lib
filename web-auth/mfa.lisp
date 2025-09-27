@@ -21,17 +21,13 @@
 
 (defun validate-mfa-totp (user-id input-totp &optional (minute-tolerance 0))
   "Validate TOTP for previous, current, and next minute."
-  (let* ((mfa-key (get-mfa-key user-id))
-         (repeats (1+ (* 2 minute-tolerance)))
-         (valid-totps (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats collect (totp:totp mfa-key i)))
-         (parsed-totp (parse-to-integer-or-default input-totp)))
-    (some
-     (lambda (e)
-       ;; (format t "~&[MFA] comparing ~D with ~D~%" e parsed-totp)
-       (=
-        parsed-totp
-        e))
-     valid-totps)))
+  (let ((parsed-totp (parse-to-integer-or-default input-totp))
+        (repeats (1+ (* 2 minute-tolerance))))
+    (flet ((get-valid-totps ()
+             (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats
+                   collect
+                   (totp:totp (get-mfa-key user-id) i))))
+      (find parsed-totp (get-valid-totps) :test #'=))))
 
 (defun refresh-mfa-expiration (user-id &optional (time (get-universal-time)))
   "Refresh time of lastest MFA check"
