@@ -8,4 +8,5 @@
   :serial t
   :components ((:file package)
                (:file guid)
-               (:file string)))
+               (:file string)
+               (:file hex)))
