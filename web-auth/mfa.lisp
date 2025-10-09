@@ -24,10 +24,13 @@
   (let ((parsed-totp (parse-to-integer-or-default input-totp))
         (repeats (1+ (* 2 minute-tolerance))))
     (flet ((get-valid-totps ()
-             (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats
-                   collect
-                   (totp:totp (get-mfa-key user-id) i))))
-      (find parsed-totp (get-valid-totps) :test #'=))))
+             (let ((mfa-key (get-mfa-key user-id)))
+               (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats
+                     collect
+                     (totp:totp mfa-key i)))))
+      (let ((valid-totps (get-valid-totps)))
+        (format t "~&Valid TOTPs: ~A~%" valid-totps)
+        (find parsed-totp valid-totps :test #'=)))))
 
 (defun refresh-mfa-expiration (user-id &optional (time (get-universal-time)))
   "Refresh time of lastest MFA check"

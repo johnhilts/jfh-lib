@@ -17,8 +17,10 @@
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
       (format t "Link fingerprint to session using: ~A~%" client-id)
       (let ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
-            (mfa-in-progress (search "-mfa" (tbnl:script-name tbnl:*request*)))) ;; TODO need to ignore static resources
-        (when (and user-id (enable-mfa *web-configuration*) (not mfa-in-progress))
+            (mfa-setup-in-progress (search "mfa-setup" (tbnl:script-name tbnl:*request*)))
+            (mfa-in-progress (search "-mfa" (tbnl:script-name tbnl:*request*)))
+            (mfa-can-skip (search "/styles.css" (tbnl:script-name tbnl:*request*))))
+        (when (and user-id (enable-mfa *web-configuration*) (not mfa-setup-in-progress) (not mfa-in-progress) (not mfa-can-skip))
           (prompt-mfa tbnl:*request* user-id)))))
   (when (next-method-p)
     (call-next-method)))
