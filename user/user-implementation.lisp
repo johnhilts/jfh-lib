@@ -58,7 +58,7 @@
 
 (defmethod get-secure-user-info ((user-login application-user-login))
   "Search for secure user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where '(:user-login (user-login user-login)))))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-login-index-entry :where `(:user-login ,(user-login user-login)))))
      (jfh-store:make-instance* 'application-secure-user :user-id (jfh-store:user-id user-index-entry))))
 
 (defmethod get-secure-user-info ((user-fingerprint application-user-fingerprint))

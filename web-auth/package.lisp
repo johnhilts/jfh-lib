@@ -17,4 +17,6 @@
    #:login-page
    #:validate-signup-parameters
    #:establish-user-session
-   #:get-authenticated-user))
+   #:get-authenticated-user
+   ;; mfa
+   #:validate-mfa-totp))

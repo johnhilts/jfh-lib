@@ -16,6 +16,7 @@
    #:user-password
    #:user-api-key
    #:user-fingerprint
+   #:user-mfa-key
    #:user-index-entry
    #:user-login-index-entry
    #:user-api-key-index-entry

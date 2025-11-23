@@ -9,9 +9,11 @@
 
 (defun get-mfa-key (user-id)
   "Just for abstracting how we get the MFA key"
-  (setf
-   (gethash user-id *mfa-keys*)
-   *mfa-key*))
+  (let* ((cached-mfa-key (gethash user-id *mfa-keys*))
+         (mfa-key (or cached-mfa-key (jfh-user:user-mfa-key (jfh-user:get-secure-user-info (make-instance 'jfh-user:application-user-id :user-id user-id))))))
+    (setf
+     (gethash user-id *mfa-keys*)
+     mfa-key)))
 
 (defun parse-to-integer-or-default (number &optional (default 0))
   "Handle PARSE-INTEGER failure by return 0"
@@ -19,18 +21,19 @@
       (parse-integer number)
     (error () (return-from parse-to-integer-or-default default))))
 
-(defun validate-mfa-totp (user-id input-totp &optional (minute-tolerance 0))
+(defun get-valid-totps (user-id minute-tolerance repeats)
+  (let ((mfa-key (get-mfa-key user-id)))
+    (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats
+          collect
+          (totp:totp mfa-key i))))
+
+(defun validate-mfa-totp (user-id input-totp &key (minute-tolerance 0))
   "Validate TOTP for previous, current, and next minute."
   (let ((parsed-totp (parse-to-integer-or-default input-totp))
         (repeats (1+ (* 2 minute-tolerance))))
-    (flet ((get-valid-totps ()
-             (let ((mfa-key (get-mfa-key user-id)))
-               (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats
-                     collect
-                     (totp:totp mfa-key i)))))
-      (let ((valid-totps (get-valid-totps)))
-        (format t "~&Valid TOTPs: ~A~%" valid-totps)
-        (find parsed-totp valid-totps :test #'=)))))
+    (let ((valid-totps (get-valid-totps user-id minute-tolerance repeats)))
+      (format t "~&Valid TOTPs: ~A~%" valid-totps)
+      (find parsed-totp valid-totps :test #'=))))
 
 (defun refresh-mfa-expiration (user-id &optional (time (get-universal-time)))
   "Refresh time of lastest MFA check"
