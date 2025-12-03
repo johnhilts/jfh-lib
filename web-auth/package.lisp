@@ -19,4 +19,6 @@
    #:establish-user-session
    #:get-authenticated-user
    ;; mfa
-   #:validate-mfa-totp))
+   #:validate-mfa-totp
+   #:refresh-mfa-expiration
+   #:print-totp-url))
