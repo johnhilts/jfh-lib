@@ -21,10 +21,12 @@
          (remhash user-id *mfa-checks*)
          user-id))))
 
-(defparameter *mfa-checks* (make-hash-table)) ;; track MFA checks by user
+(defparameter *mfa-checks* (make-hash-table :test #'equal) "Track MFA checks by user")
 
 (defmethod jfh-web-server:prompt-mfa ((tbnl:*request* tbnl:request) user-id)
   "Redirect to MFA prompt. The conditions are: 1. No recent MFA check."
+  (when (needs-mfa-setup user-id)
+    (tbnl:redirect (format nil "/mfa-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   (when (needs-mfa-check user-id)
     (tbnl:redirect (format nil "/prompt-mfa?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   

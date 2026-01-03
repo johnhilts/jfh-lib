@@ -53,5 +53,8 @@ otpauth://totp/Issuer:AccountName?secret=BASE32SECRET&issuer=Issuer
 or
 otpauth://totp/test.com:me@here.com?secret=YOURSECRET&issuer=test.com"
   (let ((b32-encoded-secret (base32:bytes-to-base32 (coerce (jfh-utility::hex-string-to-base10-list totp) 'vector))))
-    ;; (format nil "otpauth://totp/~A:~A?secret=~A&issuer=~A" base-url user-id b32-encoded-secret base-url)
-    b32-encoded-secret))
+    (format nil "otpauth://totp/~A:~A?secret=~A&issuer=~A" base-url user-id b32-encoded-secret base-url)))
+
+(defun base32-encode-hex-string (hex-string)
+  "Base 32 encode hex string"
+  (base32:bytes-to-base32 (coerce (jfh-utility::hex-string-to-base10-list hex-string) 'vector)))

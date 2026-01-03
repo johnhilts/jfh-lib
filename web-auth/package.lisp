@@ -21,4 +21,5 @@
    ;; mfa
    #:validate-mfa-totp
    #:refresh-mfa-expiration
-   #:print-totp-url))
+   #:print-totp-url
+   #:base32-encode-hex-string))
