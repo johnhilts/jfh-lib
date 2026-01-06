@@ -18,3 +18,9 @@
   (:documentation "Establish the user session in Hunchentoot's session apparatus + in cookies.
 This probably needs some re-working but is serviceable for now."))
 
+(defclass totp-info (jfh-store:user-settings jfh-security:aes) ()
+  (:documentation "TOTP key for a user."))
+
+(defgeneric save-totp-info (totp-info))
+
+(defgeneric get-totp-info (jfh-user:application-user-identifier))

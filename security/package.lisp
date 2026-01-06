@@ -5,4 +5,7 @@
   (:export
    #:aes
    #:encrypt
-   #:decrypt))
+   #:decrypt
+   #:generate-random-iv
+   #:fetch-key
+   #:*chasi-encryption-keys*))
