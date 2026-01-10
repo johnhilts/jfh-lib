@@ -22,4 +22,7 @@
    #:validate-mfa-totp
    #:refresh-mfa-expiration
    #:print-totp-url
+   #:totp-info
+   #:get-totp-info
+   #:save-totp-info
    #:base32-encode-hex-string))

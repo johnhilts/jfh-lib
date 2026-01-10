@@ -32,10 +32,7 @@
   (:documentation "Application API Key."))
 
 (defclass application-secure-user (application-user application-password application-fingerprint application-api-key)
-  ((%user-mfa-key
-    :reader user-mfa-key
-    :initarg :user-mfa-key
-    :initform ""))
+  ()
   (:documentation "Application user secure info."))
 
 (defclass application-meta-user (application-user)

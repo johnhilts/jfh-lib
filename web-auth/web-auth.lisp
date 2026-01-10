@@ -41,4 +41,4 @@
 
 (defun needs-mfa-setup (user-id)
   "Check whether user needs MFA setup. The check is based on whether the MFA key is populated; it defaults to an empty string, so check using LENGTH is safe."
-  (zerop (length (jfh-user:user-mfa-key (jfh-user:get-secure-user-info (make-instance 'jfh-user:application-user-id :user-id user-id))))))
+  (zerop (length (jfh-security:cipher (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id))))))

@@ -8,4 +8,5 @@
    #:decrypt
    #:generate-random-iv
    #:fetch-key
+   #:cipher
    #:*chasi-encryption-keys*))
