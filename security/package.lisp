@@ -4,6 +4,8 @@
   (:use #:common-lisp)
   (:export
    #:aes
+   #:get-encryption-key
+   #:cache-encryption-key
    #:encrypt
    #:decrypt
    #:generate-random-iv
