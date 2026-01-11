@@ -8,5 +8,6 @@
   :serial t
   :depends-on (#:ironclad #:cl-base64)
   :components ((:file package)
+               (:file security)
                (:file security-protocol)
                (:file security-implementation)))
