@@ -27,18 +27,6 @@
        (zerop (length signup-validation-failure-reasons))
        signup-validation-failure-reasons))))
 
-(defun needs-mfa-check (user-id)
-  (let* ((last-mfa-check (gethash user-id *mfa-checks* 'not-found))
-         (mfa-check-not-found (eql 'not-found last-mfa-check))
-         (last-mfa-check-expired (or
-                                  mfa-check-not-found
-                                  (>
-                                   (- (get-universal-time) last-mfa-check)
-                                   (* 60 10)))))
-    (or
-     mfa-check-not-found
-     last-mfa-check-expired)))
-
 (defun needs-mfa-setup (user-id)
   "Check whether user needs MFA setup. The check is based on whether the MFA key is populated; it defaults to an empty string, so check using LENGTH is safe."
   (let ((totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id))))

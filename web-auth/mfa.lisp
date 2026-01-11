@@ -1,9 +1,6 @@
 ;;;; functions for auth related concerns, with a focus on MFA. 
 (cl:in-package #:jfh-web-auth)
 
-;; TODO this will need to be input and stored securely in APPLICATION-SECURE-USER
-(defparameter *mfa-key* "48656C6C6F21DEADBEEF48656C6C6F21DEADBEEF") ;; from an example
-
 ;; TODO need to encrypt the keys
 (defparameter *mfa-keys* (make-hash-table :test #'equal))
 

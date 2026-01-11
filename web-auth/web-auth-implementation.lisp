@@ -23,6 +23,18 @@
 
 (defparameter *mfa-checks* (make-hash-table :test #'equal) "Track MFA checks by user")
 
+(defun needs-mfa-check (user-id)
+  (let* ((last-mfa-check (gethash user-id *mfa-checks* 'not-found))
+         (mfa-check-not-found (eql 'not-found last-mfa-check))
+         (last-mfa-check-expired (or
+                                  mfa-check-not-found
+                                  (>
+                                   (- (get-universal-time) last-mfa-check)
+                                   (* 60 10)))))
+    (or
+     mfa-check-not-found
+     last-mfa-check-expired)))
+
 (defmethod jfh-web-server:prompt-mfa ((tbnl:*request* tbnl:request) user-id)
   "Redirect to MFA prompt. The conditions are: 1. No recent MFA check."
   (when (needs-mfa-setup user-id)
