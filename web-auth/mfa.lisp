@@ -8,7 +8,7 @@
   "Just for abstracting how we get the MFA key"
   (let* ((cached-mfa-key (gethash user-id *mfa-keys*))
          (totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id)))
-         (mfa-key (or cached-mfa-key (if totp-info (jfh-security:cipher totp-info) ""))))
+         (mfa-key (or cached-mfa-key (if totp-info (jfh-security:decrypt totp-info) ""))))
     (setf
      (gethash user-id *mfa-keys*)
      mfa-key)))
