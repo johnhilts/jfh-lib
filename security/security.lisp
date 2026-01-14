@@ -6,4 +6,4 @@
 
 (defun fetch-key (user-id)
   "Fetch key from cache"
-  (jfh-security:get-encryption-key *chasi-configuration* (make-instance 'jfh-user:application-user-api-key :user-api-key (jfh-user:user-fingerprint user-identifier))))
+  (gethash user-id *chasi-encryption-keys*))
