@@ -46,11 +46,11 @@
   (setf (gethash user-id *mfa-checks*) (get-universal-time)))
 
 (defmethod jfh-security:encrypt ((totp-info totp-info) &optional key)
-  (let ((encryption-key (or key (jfh-security:fetch-key (jfh-store:user-id totp-info)))))
+  (let ((encryption-key (or key (jfh-security:fetch-key))))
     (call-next-method totp-info encryption-key)))
 
 (defmethod jfh-security:decrypt ((totp-info totp-info) &optional key)
-  (let ((encryption-key (or key (coerce (jfh-security:fetch-key (jfh-store:user-id totp-info)) '(vector (unsigned-byte 8)))))) ;; TODO can we get rid of COERCE?
+  (let ((encryption-key (or key (coerce (jfh-security:fetch-key) '(vector (unsigned-byte 8)))))) ;; TODO can we get rid of COERCE?
     (call-next-method totp-info encryption-key)))
 
 (defmethod save-totp-info ((totp-info totp-info))
