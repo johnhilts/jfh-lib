@@ -13,5 +13,7 @@
    #:define-api-endpoint
    #:fetch-or-create-user-session
    #:prompt-mfa
+   #:can-skip-certificate-auth
+   #:ssl-client-cert-acceptor
    #:verb
    #:web))

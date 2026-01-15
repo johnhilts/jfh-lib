@@ -2,11 +2,12 @@
 
 (defparameter *chasi-encryption-keys* (make-hash-table :test #'equalp))
 
+(defparameter *key* nil)
+
 (defun generate-random-iv ()
   "Generate a random initialization vector (IV) for AES."
   (ironclad:random-data 16))
 
 (defun fetch-key ()
   "Fetch key from cache"
-  (let ((fingerprint (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate))))
-    (gethash fingerprint *chasi-encryption-keys*)))
+  (gethash *key* *chasi-encryption-keys*))

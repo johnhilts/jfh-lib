@@ -59,3 +59,9 @@
 (defmethod get-totp-info ((application-user-id jfh-user:application-user-id))
   (let ((user-id (jfh-store:user-id application-user-id)))
     (jfh-store:make-instance* 'totp-info :user-id user-id)))
+
+(defmethod tbnl:handle-request :after ((tbnl:*acceptor* jfh-web-server:ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
+  (unless (jfh-web-server:can-skip-certificate-auth)
+    (setf jfh-security:*key* (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate))))
+  (when (next-method-p)
+    (call-next-method)))

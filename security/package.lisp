@@ -11,4 +11,5 @@
    #:generate-random-iv
    #:fetch-key
    #:cipher
-   #:*chasi-encryption-keys*))
+   #:*chasi-encryption-keys*
+   #:*key*))
