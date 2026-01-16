@@ -1,5 +1,7 @@
 (in-package #:jfh-web-server)
 
+(defparameter *print-sensitive* nil)
+
 ;; TODO: should this part go into "internal"? #-start-#
 (defun can-skip-certificate-auth ()
   (or
@@ -15,7 +17,7 @@
   (unless (can-skip-certificate-auth)
     (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
-      (format t "Link fingerprint to session using: ~A~%" client-id)
+      (when *print-sensitive* (format t "Link fingerprint to session using: ~A~%" client-id))
       (let ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
             (mfa-setup-in-progress (search "mfa-setup" (tbnl:script-name tbnl:*request*)))
             (mfa-in-progress (search "-mfa" (tbnl:script-name tbnl:*request*)))
