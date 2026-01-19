@@ -73,8 +73,11 @@
     (number #'=)
     (otherwise #'string=)))
 
+(defun is-index-p (class-name)
+  (subtypep (find-class class-name) (find-class 'jfh-store:user-index)))
+
 (defun get-file-contents (user-id class-name where &key fetch-multiple)
-  (let* ((need-index-lookup (and (null user-id) where))
+  (let* ((need-index-lookup (and (null user-id) where (not (is-index-p class-name))))
          (index-full-file-name (and need-index-lookup (get-index-full-file-name where)))
          (key-user-id (or user-id (and need-index-lookup (getf (read-from-index index-full-file-name where) :user-id))))
          (full-file-name (get-full-file-name class-name (string-downcase (string class-name)) (lambda () key-user-id)))
