@@ -259,8 +259,8 @@
   (delete-data object (or save-name (get-save-name object))))
 
 (defun get-full-file-name (class-name save-name &optional get-user-id)
-  ;; derive correct file path from object's class name
-  (let* ((path-type (get-file-path-type class-name))
+  "Derive correct file path from object's class name"
+  (let* ((path-type (get-file-path-type class-name)) ;; TODO replace GET-FILE-PATH-TYPE and GET-FILE-DIRECTORY with clos methods!
          (need-user-id (member path-type (list 'user-settings 'user-data)))
          (directory (apply #'get-file-directory path-type (if need-user-id (list :user-id (funcall get-user-id))))))
     (format nil "~A~A.sexp" directory save-name)))
@@ -327,3 +327,6 @@
                        (format output "~S~%" updated)
                        (format output "~S~%" line))))
         output-string))))
+
+(defmethod user-exists ((object user-data)) ;; NOTE: only implemented for user-data, but can be implemented for any user-* object
+  (probe-file (format nil "~A/users/~A/" *app-data-path* (user-id object)))) ;; TODO hard-code now, but will replace with calls to methods

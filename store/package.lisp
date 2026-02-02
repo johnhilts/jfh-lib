@@ -23,6 +23,7 @@
    #:save-object
    #:delete-object
    #:save-index
+   #:user-exists
    #:read-complete-file
    #:write-complete-file
    #:fetch-or-create-data))

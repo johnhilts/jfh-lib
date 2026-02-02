@@ -39,4 +39,5 @@
 (defgeneric update-data (object save-name))
 (defgeneric delete-data (object save-name))
 (defgeneric get-direct-readers (class))
-
+(defgeneric user-exists (object)
+  (:documentation "Input: a user-* object. Output: t if a directory exits for that user, otherwise nil."))
