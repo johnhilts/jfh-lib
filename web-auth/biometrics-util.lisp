@@ -368,7 +368,9 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
   ;; (let* ((readable-object (jfh-store:make-instance* 'proto-webauthn-web-app::webauthn-info-readable :user-id (the-user-id (current-user))))
   ;;        (object (make-instance 'proto-webauthn-web-app::webauthn-info :credential-id (credential-id readable-object) :user-id (jfh-store:user-id readable-object) :public-key (public-key-readable readable-object) :sign-count (sign-count readable-object))))
   ;;   object)
-  (find-user-by-credential credential-id))
+  (let* ((readable-object (find-user-by-credential credential-id))
+         (object (make-instance 'webauthn-info :credential-id (credential-id readable-object) :user-id (jfh-store:user-id readable-object) :public-key (public-key-readable readable-object) :sign-count (sign-count readable-object))))
+    object))
 
 (defun update-credential-sign-count (credential new-count)
   "Persist updated sign count"
