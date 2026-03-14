@@ -25,4 +25,11 @@
    #:totp-info
    #:get-totp-info
    #:save-totp-info
-   #:base32-encode-hex-string))
+   #:base32-encode-hex-string
+   #:webauthn-register-start
+   #:webauthn-register-finish
+   #:webauthn-login-start
+   #:webauthn-login-finish
+   #:webauthn-challenge
+   #:webauthn-info-readable
+   #:webauthn-info))

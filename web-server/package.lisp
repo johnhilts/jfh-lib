@@ -4,6 +4,7 @@
   (:use #:common-lisp)
   (:export
    #:make-web-configuration
+   #:ssl-port
    #:*web-application*
    #:web-application-shell
    #:stop-web-app

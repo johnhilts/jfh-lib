@@ -19,8 +19,10 @@
    #:user-index-entry
    #:user-login-index-entry
    #:user-api-key-index-entry
+   #:make-user-login-index-entry
    #:make-application-user
    #:read-user-info
+   #:save-index
    #:save-new-application-user
    #:save-application-user
    #:get-user-info
