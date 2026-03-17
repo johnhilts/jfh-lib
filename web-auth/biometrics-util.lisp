@@ -110,7 +110,6 @@ Return the generated challenge and the JSON response."
           (parse-client-data-json client-data-json)
         (unless (string= client-type "webauthn.create")
           (error "Invalid clientData type: ~A." client-type))
-        (break)
         (unless (equal client-challenge (base64url-encode (coerce expected-challenge '(simple-array (unsigned-byte 8) (*)))))
           (error "Challenge mismatch: ~A." client-challenge))
 

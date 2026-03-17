@@ -98,7 +98,7 @@
 
 (defmethod jfh-user:get-user-info ((user-login application-user-webauthn-credentials))
   "Search for user info in file system."
-  (let ((user-index-entry (jfh-store:make-instance* 'application-user-webauthn-credentials :where `(:user-credential-id ,(user-credential-id user-login)));; (jfh-store:make-instance* 'user-webauthn-credential-index-entry :where '(:user-credential-id (user-credential-id user-login)))
+  (let ((user-index-entry (jfh-store:make-instance* 'user-webauthn-credential-index-entry :where `(:user-credential-id ,(user-credential-id user-login)))
                           ))
     (jfh-store:make-instance* 'webauthn-info-readable :user-id (jfh-store:user-id user-index-entry))))
 
@@ -108,7 +108,7 @@
 
 (defmethod jfh-user:make-user-login-index-entry ((application-user webauthn-info-readable))
   "Input: webauthn-info-readable. Output: user credential-ID index entry."
-  (make-instance 'application-user-webauthn-credentials
+  (make-instance 'user-webauthn-credential-index-entry
 		 :user-credential-id (credential-id application-user)
 		 :user-id (jfh-store:user-id application-user)))
 
