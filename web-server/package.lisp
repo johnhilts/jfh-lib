@@ -14,6 +14,7 @@
    #:define-api-endpoint
    #:fetch-or-create-user-session
    #:prompt-mfa
+   #:prompt-totp
    #:can-skip-certificate-auth
    #:ssl-client-cert-acceptor
    #:verb

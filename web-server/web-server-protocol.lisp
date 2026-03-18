@@ -67,5 +67,5 @@
 (defgeneric fetch-or-create-user-session (user-identifier) 
   (:documentation "Fetch an existing or create a new user session based on the user-identifier."))
 
-(defgeneric prompt-mfa (request user-id) 
-  (:documentation "Prompt for Multi-factor authentication. Redirect to another page to prompt input."))
+(defgeneric prompt-totp (request user-id) 
+  (:documentation "Prompt for TOTP. Redirect to another page to prompt input."))
