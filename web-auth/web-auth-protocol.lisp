@@ -25,7 +25,7 @@ This probably needs some re-working but is serviceable for now."))
 
 (defgeneric get-totp-info (jfh-user:application-user-identifier))
 
-(defclass webauthn-challenge (jfh-store:user-data)
+(defclass webauthn-challenge (jfh-store:user-settings)
   ((%challenge :accessor challenge :initarg :challenge)))
 
 (defclass webauthn-info-readable (jfh-store:user-settings)

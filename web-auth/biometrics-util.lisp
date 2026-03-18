@@ -58,7 +58,7 @@ Return the generated challenge and the JSON response."
         )
 
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'jfh-web-auth:webauthn-challenge :user-id user-id :data-id (format nil "~D" (random 100)) :challenge challenge))
+    (jfh-store:save-object (make-instance 'jfh-web-auth:webauthn-challenge :user-id user-id :challenge challenge))
 
     (respond-json
      `(("publicKey"
@@ -141,7 +141,7 @@ Return the generated challenge and the JSON response."
         (credentials (user-webauthn-credentials user-id)))
     
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'jfh-web-auth:webauthn-challenge :user-id user-id :data-id (format nil "~D" (random 100)) :challenge challenge))
+    (jfh-store:save-object (make-instance 'jfh-web-auth:webauthn-challenge :user-id user-id :challenge challenge))
 
     ;; (setf (gethash 'webauthn-login-challenge *session-user-map*) challenge)
     ;; (setf (gethash 'webauthn-login-user-id *session-user-map*) (the-user-id the-user))
