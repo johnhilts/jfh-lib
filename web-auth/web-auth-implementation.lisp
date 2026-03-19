@@ -36,8 +36,8 @@
      last-mfa-check-expired)))
 
 (defmethod jfh-web-server:prompt-totp ((tbnl:*request* tbnl:request) user-id)
-  "Redirect to MFA prompt. The conditions are: 1. No recent MFA check."
-  (when (needs-mfa-setup user-id)
+  "Redirect to TOTP prompt. The conditions are: 1. No recent TOTP check."
+  (when (needs-totp-setup user-id)
     (tbnl:redirect (format nil "/totp-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   (when (needs-mfa-check user-id)
     (tbnl:redirect (format nil "/prompt-totp?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))

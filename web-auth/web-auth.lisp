@@ -27,7 +27,7 @@
        (zerop (length signup-validation-failure-reasons))
        signup-validation-failure-reasons))))
 
-(defun needs-mfa-setup (user-id)
-  "Check whether user needs MFA setup. The check is based on whether the MFA key is populated; it defaults to an empty string, so check using LENGTH is safe."
+(defun needs-totp-setup (user-id)
+  "Check whether user needs TOTP setup. The check is based on whether the TOTP key is populated; it defaults to an empty string, so check using LENGTH is safe."
   (let ((totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id))))
     (or (not totp-info) (zerop (length (jfh-security:cipher totp-info))))))

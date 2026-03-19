@@ -2,16 +2,16 @@
 (cl:in-package #:jfh-web-auth)
 
 ;; TODO need to encrypt the keys
-(defparameter *mfa-keys* (make-hash-table :test #'equal))
+(defparameter *totp-keys* (make-hash-table :test #'equal))
 
-(defun get-mfa-key (user-id)
-  "Just for abstracting how we get the MFA key"
-  (let* ((cached-mfa-key (gethash user-id *mfa-keys*))
+(defun get-totp-key (user-id)
+  "Just for abstracting how we get the TOTP key"
+  (let* ((cached-totp-key (gethash user-id *totp-keys*))
          (totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id)))
-         (mfa-key (or cached-mfa-key (if totp-info (jfh-security:decrypt totp-info) ""))))
+         (totp-key (or cached-totp-key (if totp-info (jfh-security:decrypt totp-info) ""))))
     (setf
-     (gethash user-id *mfa-keys*)
-     mfa-key)))
+     (gethash user-id *totp-keys*)
+     totp-key)))
 
 (defun parse-to-integer-or-default (number &optional (default 0))
   "Handle PARSE-INTEGER failure by return 0"
@@ -20,10 +20,10 @@
     (error () (return-from parse-to-integer-or-default default))))
 
 (defun get-valid-totps (user-id minute-tolerance repeats)
-  (let ((mfa-key (get-mfa-key user-id)))
+  (let ((totp-key (get-totp-key user-id)))
     (loop for i = (* -1 minute-tolerance 60) then (incf i 60) repeat repeats
           collect
-          (totp:totp mfa-key i))))
+          (totp:totp totp-key i))))
 
 (defun validate-mfa-totp (user-id input-totp &key (minute-tolerance 0))
   "Validate TOTP for previous, current, and next minute."

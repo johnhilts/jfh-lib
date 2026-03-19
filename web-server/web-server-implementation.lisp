@@ -20,9 +20,13 @@
       (when *print-sensitive* (format t "Link fingerprint to session using: ~A~%" client-id))
       (let ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
             (mfa-setup-in-progress (search "totp-setup" (tbnl:script-name tbnl:*request*)))
-            (mfa-in-progress (search "-mfa" (tbnl:script-name tbnl:*request*)))
+            (mfa-in-progress (or (search "-mfa" (tbnl:script-name tbnl:*request*)) (search "-totp" (tbnl:script-name tbnl:*request*))))
             (mfa-can-skip (search "/styles.css" (tbnl:script-name tbnl:*request*))))
-        (when (and user-id (enable-mfa *web-configuration*) (not mfa-setup-in-progress) (not mfa-in-progress) (not mfa-can-skip))
+        (when (and
+               user-id
+               (or
+                (enable-totp *web-configuration*) (enable-webauthn *web-configuration*))
+               (not mfa-setup-in-progress) (not mfa-in-progress) (not mfa-can-skip))
           (prompt-totp tbnl:*request* user-id)))))
   (when (next-method-p)
     (call-next-method)))
@@ -117,11 +121,12 @@
            (ssl-port ssl-port)
 	   (static-root static-root)
            (accept-client-cert accept-client-cert)
-           (enable-mfa enable-mfa))
+           (enable-totp enable-totp)
+           (enable-webauthn enable-webauthn))
         web-configuration
       (format stream
-              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~], Enable MFA: ~:[false~;true~]"
-              http-port ssl-port static-root accept-client-cert enable-mfa))))
+              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~], Enable TOTP: ~:[false~;true~], Enable WebAuthN: ~:[false~;true~]"
+              http-port ssl-port static-root accept-client-cert enable-totp enable-webauthn))))
 
 (defmethod print-object ((web-application web-application) stream)
   "Print web application."

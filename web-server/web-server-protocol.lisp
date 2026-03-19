@@ -16,9 +16,12 @@
    (%accept-client-cert
     :reader accept-client-cert
     :initarg :accept-client-cert)
-   (%enable-mfa
-    :reader enable-mfa
-    :initarg :enable-mfa))
+   (%enable-totp
+    :reader enable-totp
+    :initarg :enable-totp)
+   (%enable-webauthn
+    :reader enable-webauthn
+    :initarg :enable-webauthn))
   (:documentation "Web Application configurations."))
 
 (defclass web-application ()
