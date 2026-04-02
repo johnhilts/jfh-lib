@@ -19,15 +19,28 @@
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
       (when *print-sensitive* (format t "Link fingerprint to session using: ~A~%" client-id))
       (let ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
-            (mfa-setup-in-progress (search "totp-setup" (tbnl:script-name tbnl:*request*)))
-            (mfa-in-progress (or (search "-mfa" (tbnl:script-name tbnl:*request*)) (search "-totp" (tbnl:script-name tbnl:*request*))))
+            (mfa-setup-in-progress (or
+                                    (search "totp-setup" (tbnl:script-name tbnl:*request*))
+                                    (search "b-registration" (tbnl:script-name tbnl:*request*))))
+            (mfa-in-progress (or
+                              (search "-mfa" (tbnl:script-name tbnl:*request*))
+                              (search "-totp" (tbnl:script-name tbnl:*request*))
+                              (search "webauthn" (tbnl:script-name tbnl:*request*))
+                              (search "biometrics" (tbnl:script-name tbnl:*request*))))
             (mfa-can-skip (search "/styles.css" (tbnl:script-name tbnl:*request*))))
         (when (and
                user-id
                (or
-                (enable-totp *web-configuration*) (enable-webauthn *web-configuration*))
-               (not mfa-setup-in-progress) (not mfa-in-progress) (not mfa-can-skip))
-          (prompt-totp tbnl:*request* user-id)))))
+                (enable-totp *web-configuration*)
+                (enable-webauthn *web-configuration*))
+               (not mfa-setup-in-progress)
+               (not mfa-in-progress)
+               (not mfa-can-skip))
+          (cond
+            ((enable-totp *web-configuration*)
+             (prompt-totp tbnl:*request* user-id))
+            ((enable-webauthn *web-configuration*)
+             (prompt-webauthn tbnl:*request* user-id)))))))
   (when (next-method-p)
     (call-next-method)))
 

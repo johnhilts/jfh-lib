@@ -13,8 +13,8 @@
    #:add-static-path-map
    #:define-api-endpoint
    #:fetch-or-create-user-session
-   #:prompt-mfa
    #:prompt-totp
+   #:prompt-webauthn
    #:can-skip-certificate-auth
    #:ssl-client-cert-acceptor
    #:verb

@@ -31,3 +31,8 @@
   "Check whether user needs TOTP setup. The check is based on whether the TOTP key is populated; it defaults to an empty string, so check using LENGTH is safe."
   (let ((totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id))))
     (or (not totp-info) (zerop (length (jfh-security:cipher totp-info))))))
+
+(defun needs-webauthn-setup (user-id)
+  "Check whether user needs webauthn setup. The check is based on whether a WEBAUTHN-INFO-READABLE exists for the user. Default to an empty string, so using LENGTH is safe."
+  (let ((webauthn-info (get-webauthn-info (make-instance 'jfh-user:application-user-id :user-id user-id))))
+    (or (not webauthn-info) (zerop (length (credential-id webauthn-info))))))

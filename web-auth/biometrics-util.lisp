@@ -173,9 +173,10 @@ Return the generated challenge and the JSON response."
 ;;   (declare (ignore cred))
 ;;   (error "credential-user not implemented"))
 
-(defun log-in-user (user-id)
-  ;; (error "log-in-user not implemented")
-  (format t "Pretend the user is logged in now. ~%Here's the user ID: ~A~%" user-id))
+;; (defun log-in-user (user-id)
+;;   "User is already logged in"
+;;   (format t "~&Logging user ID: ~A~%" user-id) ;; TODO only print when flag is true
+;;   (refresh-mfa-expiration user-id))
 
 ;; (defun cose-key->ironclad-ec-key (cose-key) ;; UNUSED
 ;;   "Convert a COSE EC2 key (ES256) to an Ironclad ECDSA key.
@@ -277,14 +278,14 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
 
           (validate-client-data-json client-data-json user-id)
           
-          (multiple-value-bind (rp-id-hash flags sign-count aaguid cred-id cred-pubkey)
+          (multiple-value-bind (rp-id-hash flags new-sign-count aaguid cred-id cred-pubkey)
               (parse-authenticator-data auth-data)
             (declare (ignore flags aaguid cred-id cred-pubkey))
             (validate-rpid rp-id-hash)
             
-            (let* ((cred (find-credential-by-id raw-id)) ;; we also should have the user ID by this point too
-                   (stored-pubkey (public-key cred))
-                   (stored-sign-count (sign-count cred)))
+            (let* ((user-credential (find-credential-by-id raw-id)) ;; we also should have the user ID by this point too
+                   (stored-pubkey (public-key user-credential))
+                   (stored-sign-count (sign-count user-credential)))
               (let* ((client-hash (sha256-bytes client-data-json))
                      (signed-bytes (concatenate '(simple-array (unsigned-byte 8) (*))
                                                 auth-data
@@ -292,10 +293,10 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
                 (unless (verify-signature stored-pubkey signed-bytes signature)
                   (error "Invalid signature")))
               (when (and stored-sign-count
-                         (> sign-count stored-sign-count))
-                (update-credential-sign-count cred sign-count))
+                         (> new-sign-count stored-sign-count))
+                (update-credential-sign-count user-credential new-sign-count))
 
-              (log-in-user (jfh-store:user-id cred))
+              (refresh-mfa-expiration (jfh-store:user-id user-credential))
 
               (format t "Finished login!~%")
               (respond-json '(("status" . "ok"))))))))))

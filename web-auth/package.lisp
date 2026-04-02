@@ -26,6 +26,7 @@
    #:get-totp-info
    #:save-totp-info
    #:base32-encode-hex-string
+   #:get-webauthn-info
    #:webauthn-register-start
    #:webauthn-register-finish
    #:webauthn-login-start

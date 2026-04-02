@@ -36,11 +36,18 @@
      last-mfa-check-expired)))
 
 (defmethod jfh-web-server:prompt-totp ((tbnl:*request* tbnl:request) user-id)
-  "Redirect to TOTP prompt. The conditions are: 1. No recent TOTP check."
+  "Redirect to TOTP prompt. The conditions are: 1. No recent MFA check."
   (when (needs-totp-setup user-id)
     (tbnl:redirect (format nil "/totp-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   (when (needs-mfa-check user-id)
     (tbnl:redirect (format nil "/prompt-totp?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
+
+(defmethod jfh-web-server:prompt-webauthn ((tbnl:*request* tbnl:request) user-id)
+  "Redirect to WebAuthN prompt. The conditions are: 1. No recent MFA check."
+  (when (needs-webauthn-setup user-id)
+    (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
+  (when (needs-mfa-check user-id)
+    (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   
   ;; sliding MFA expiration
   (setf (gethash user-id *mfa-checks*) (get-universal-time)))
@@ -59,6 +66,10 @@
 (defmethod get-totp-info ((application-user-id jfh-user:application-user-id))
   (let ((user-id (jfh-store:user-id application-user-id)))
     (jfh-store:make-instance* 'totp-info :user-id user-id)))
+
+(defmethod get-webauthn-info ((application-user-id jfh-user:application-user-id))
+  (let ((user-id (jfh-store:user-id application-user-id)))
+    (jfh-store:make-instance* 'webauthn-info-readable :user-id user-id)))
 
 (defmethod tbnl:handle-request :after ((tbnl:*acceptor* jfh-web-server:ssl-client-cert-acceptor) (tbnl:*request* tbnl:request))
   (unless (jfh-web-server:can-skip-certificate-auth)

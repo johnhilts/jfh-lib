@@ -72,3 +72,6 @@
 
 (defgeneric prompt-totp (request user-id) 
   (:documentation "Prompt for TOTP. Redirect to another page to prompt input."))
+
+(defgeneric prompt-webauthn (request user-id) 
+  (:documentation "Prompt for WebAuthN. Redirect to another page to prompt input."))
