@@ -13,6 +13,10 @@
    #:add-static-path-map
    #:define-api-endpoint
    #:fetch-or-create-user-session
+   #:enable-webauthn
+   #:enable-totp
+   #:mfa-enabled
+   #:need-mfa-check
    #:prompt-totp
    #:prompt-webauthn
    #:can-skip-certificate-auth

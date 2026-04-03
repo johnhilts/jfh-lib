@@ -33,9 +33,10 @@
       (format t "~&Valid TOTPs: ~A~%" valid-totps)
       (find parsed-totp valid-totps :test #'=))))
 
-(defun refresh-mfa-expiration (user-id &optional (time (get-universal-time)))
+(defun refresh-mfa-expiration (user-id mfa-type &optional (time (get-universal-time)))
   "Refresh time of lastest MFA check"
-  (setf (gethash user-id *mfa-checks*) time))
+  (let ((mfa-checks-by-user (if (eql mfa-type 'webauthn-mfa) *webauthn-checks* *totp-checks*)))
+    (setf (gethash user-id mfa-checks-by-user) time)))
 
 ;; TODO might be good to have MFA actions that specialize on types such as a "TOTP"
 (defun generate-mfa-secret ()

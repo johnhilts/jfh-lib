@@ -21,6 +21,8 @@
    ;; mfa
    #:validate-mfa-totp
    #:refresh-mfa-expiration
+   #:webauthn-mfa
+   #:totp-mfa
    #:print-totp-url
    #:totp-info
    #:get-totp-info

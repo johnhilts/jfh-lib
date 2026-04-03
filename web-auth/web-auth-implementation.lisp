@@ -21,36 +21,84 @@
          (remhash user-id *mfa-checks*)
          user-id))))
 
+(defmethod jfh-web-server:mfa-enabled ((configuration jfh-web-server:web-configuration))
+  "Determine whether MFA is enabled, and what types. Return list of supported and enabled MFA schemes."
+  (remove-if-not #'identity
+                 (list
+                  (if (jfh-web-server:enable-totp configuration) 'totp-mfa nil) 
+                  (if (jfh-web-server:enable-webauthn configuration) 'webauthn-mfa nil))))
+
 (defparameter *mfa-checks* (make-hash-table :test #'equal) "Track MFA checks by user")
 
-(defun needs-mfa-check (user-id)
-  (let* ((last-mfa-check (gethash user-id *mfa-checks* 'not-found))
+(defparameter *totp-checks* (make-hash-table :test #'equal) "Track TOTP checks by user")
+
+(defparameter *webauthn-checks* (make-hash-table :test #'equal) "Track MFA checks by user")
+
+(defun mfa-check (user-id mfa-checks-by-user expiration-length)
+  "Generalized logic for determining if a user needs to be prompted for MFA."
+  (let* ((last-mfa-check (gethash user-id mfa-checks-by-user 'not-found))
          (mfa-check-not-found (eql 'not-found last-mfa-check))
          (last-mfa-check-expired (or
                                   mfa-check-not-found
                                   (>
                                    (- (get-universal-time) last-mfa-check)
-                                   (* 60 100)))))
+                                   expiration-length))))
     (or
      mfa-check-not-found
      last-mfa-check-expired)))
+
+(defun needs-totp-check (user-id)
+  (mfa-check user-id *totp-checks* (* 60 10000))) 
+
+(defun needs-webauthn-check (user-id)
+  (mfa-check user-id *webauthn-checks* (* 60 100)))
+
+;; (defun needs-mfa-check (user-id)
+;;   (or
+;;    (needs-webauthn-check user-id)
+;;    (needs-totp-check user-id)))
+
+(defmethod jfh-web-server:need-mfa-check ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
+  "Determine whether the given user ID needs an MFA check, and what types. Return list of MFA schemes to use in an MFA check."
+  (let ((mfa-setup-in-progress (or
+                                (search "totp-setup" (tbnl:script-name tbnl:*request*))
+                                (search "b-registration" (tbnl:script-name tbnl:*request*))))
+        (mfa-in-progress (or
+                          (search "-mfa" (tbnl:script-name tbnl:*request*))
+                          (search "-totp" (tbnl:script-name tbnl:*request*))
+                          (search "webauthn" (tbnl:script-name tbnl:*request*))
+                          (search "biometrics" (tbnl:script-name tbnl:*request*))))
+        (mfa-can-skip (search "/styles.css" (tbnl:script-name tbnl:*request*))))
+    (when (and
+           user-id
+           enabled-mfa-schemes
+           (not mfa-setup-in-progress)
+           (not mfa-in-progress)
+           (not mfa-can-skip))
+      (remove-if-not #'identity
+                     (list 
+                      (needs-webauthn-check user-id)
+                      (needs-totp-check user-id))))))
 
 (defmethod jfh-web-server:prompt-totp ((tbnl:*request* tbnl:request) user-id)
   "Redirect to TOTP prompt. The conditions are: 1. No recent MFA check."
   (when (needs-totp-setup user-id)
     (tbnl:redirect (format nil "/totp-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
-  (when (needs-mfa-check user-id)
+  (when (needs-totp-check user-id)
     (tbnl:redirect (format nil "/prompt-totp?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
-
+  
+  ;; sliding webauthn expiration
+  (setf (gethash user-id *totp-checks*) (get-universal-time)))
+  
 (defmethod jfh-web-server:prompt-webauthn ((tbnl:*request* tbnl:request) user-id)
   "Redirect to WebAuthN prompt. The conditions are: 1. No recent MFA check."
   (when (needs-webauthn-setup user-id)
     (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
-  (when (needs-mfa-check user-id)
+  (when (needs-webauthn-check user-id)
     (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   
-  ;; sliding MFA expiration
-  (setf (gethash user-id *mfa-checks*) (get-universal-time)))
+  ;; sliding webauthn expiration
+  (setf (gethash user-id *webauthn-checks*) (get-universal-time)))
 
 (defmethod jfh-security:encrypt ((totp-info totp-info) &optional key)
   (let ((encryption-key (or key (jfh-security:fetch-key))))

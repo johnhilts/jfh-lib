@@ -296,7 +296,7 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
                          (> new-sign-count stored-sign-count))
                 (update-credential-sign-count user-credential new-sign-count))
 
-              (refresh-mfa-expiration (jfh-store:user-id user-credential))
+              (refresh-mfa-expiration (jfh-store:user-id user-credential) 'webauthn-mfa)
 
               (format t "Finished login!~%")
               (respond-json '(("status" . "ok"))))))))))
