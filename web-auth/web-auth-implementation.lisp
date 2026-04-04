@@ -77,8 +77,16 @@
            (not mfa-can-skip))
       (remove-if-not #'identity
                      (list 
-                      (if (needs-webauthn-check user-id) 'webauthn-mfa nil)
-                      (if (needs-totp-check user-id) 'totp-mfa nil))))))
+                      (if (and
+                           (member 'webauthn-mfa enabled-mfa-schemes)
+                           (needs-webauthn-check user-id)) 
+                          'webauthn-mfa
+                          'nil)
+                      (if (and 
+                           (member 'totp-mfa enabled-mfa-schemes)
+                           (needs-totp-check user-id))
+                          'totp-mfa
+                          nil))))))
 
 (defmethod jfh-web-server:prompt-totp ((tbnl:*request* tbnl:request) user-id)
   "Redirect to TOTP prompt. The conditions are: 1. No recent MFA check."
