@@ -76,7 +76,7 @@
 (defgeneric prompt-webauthn (request user-id) 
   (:documentation "Prompt for WebAuthN. Redirect to another page to prompt input."))
 
-(defgeneric mfa-enabled (configuration) 
+(defgeneric mfa-enabled-schemes (configuration) 
   (:documentation "Determine whether MFA is enabled, and what types. Return list of supported and enabled MFA schemes."))
 
 (defgeneric need-mfa-check (request user-id enabled-mfa-schemes) 

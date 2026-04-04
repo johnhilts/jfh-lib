@@ -15,7 +15,7 @@
    #:fetch-or-create-user-session
    #:enable-webauthn
    #:enable-totp
-   #:mfa-enabled
+   #:mfa-enabled-schemes
    #:need-mfa-check
    #:prompt-totp
    #:prompt-webauthn

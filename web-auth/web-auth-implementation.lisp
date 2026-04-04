@@ -21,7 +21,7 @@
          (remhash user-id *mfa-checks*)
          user-id))))
 
-(defmethod jfh-web-server:mfa-enabled ((configuration jfh-web-server:web-configuration))
+(defmethod jfh-web-server:mfa-enabled-schemes ((configuration jfh-web-server:web-configuration))
   "Determine whether MFA is enabled, and what types. Return list of supported and enabled MFA schemes."
   (remove-if-not #'identity
                  (list
@@ -77,8 +77,8 @@
            (not mfa-can-skip))
       (remove-if-not #'identity
                      (list 
-                      (needs-webauthn-check user-id)
-                      (needs-totp-check user-id))))))
+                      (if (needs-webauthn-check user-id) 'webauthn-mfa nil)
+                      (if (needs-totp-check user-id) 'totp-mfa nil))))))
 
 (defmethod jfh-web-server:prompt-totp ((tbnl:*request* tbnl:request) user-id)
   "Redirect to TOTP prompt. The conditions are: 1. No recent MFA check."
