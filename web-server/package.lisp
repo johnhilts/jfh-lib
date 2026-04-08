@@ -17,8 +17,7 @@
    #:enable-totp
    #:mfa-enabled-schemes
    #:need-mfa-check
-   #:prompt-totp
-   #:prompt-webauthn
+   #:prompt-mfa
    #:can-skip-certificate-auth
    #:ssl-client-cert-acceptor
    #:verb

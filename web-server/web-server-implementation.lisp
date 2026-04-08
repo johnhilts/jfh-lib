@@ -19,13 +19,10 @@
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
       (when *print-sensitive* (format t "Link fingerprint to session using: ~A~%" client-id))
       (let* ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
-             (need-mfa-check (jfh-web-server:need-mfa-check tbnl:*request* user-id (jfh-web-server:mfa-enabled-schemes *web-configuration*))))
+             (enabled-mfa-schemes (jfh-web-server:mfa-enabled-schemes *web-configuration*))
+             (need-mfa-check (need-mfa-check tbnl:*request* user-id enabled-mfa-schemes)))
         (when need-mfa-check
-          (cond
-            ((member 'jfh-web-auth:totp-mfa need-mfa-check)
-             (prompt-totp tbnl:*request* user-id))
-            ((member 'jfh-web-auth:webauthn-mfa need-mfa-check)
-             (prompt-webauthn tbnl:*request* user-id)))))))
+          (prompt-mfa tbnl:*request* user-id need-mfa-check enabled-mfa-schemes)))))
   (when (next-method-p)
     (call-next-method)))
 

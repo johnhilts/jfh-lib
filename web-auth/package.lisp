@@ -23,6 +23,8 @@
    #:refresh-mfa-expiration
    #:webauthn-mfa
    #:totp-mfa
+   #:prompt-totp
+   #:prompt-webauthn
    #:print-totp-url
    #:totp-info
    #:get-totp-info

@@ -70,15 +70,12 @@
 (defgeneric fetch-or-create-user-session (user-identifier) 
   (:documentation "Fetch an existing or create a new user session based on the user-identifier."))
 
-(defgeneric prompt-totp (request user-id) 
-  (:documentation "Prompt for TOTP. Redirect to another page to prompt input."))
-
-(defgeneric prompt-webauthn (request user-id) 
-  (:documentation "Prompt for WebAuthN. Redirect to another page to prompt input."))
-
 (defgeneric mfa-enabled-schemes (configuration) 
   (:documentation "Determine whether MFA is enabled, and what types. Return list of supported and enabled MFA schemes."))
 
 (defgeneric need-mfa-check (request user-id enabled-mfa-schemes) 
   (:documentation "Determine whether the given user ID needs an MFA check, and what types. Return list of MFA schemes to use in an MFA check."))
+
+(defgeneric prompt-mfa (request user-id need-mfa-check enabled-mfa-schemes) 
+  (:documentation "Trigger prompt for an MFA check for the given user ID; this links to the UI."))
 

@@ -34,29 +34,47 @@
 
 (defparameter *webauthn-checks* (make-hash-table :test #'equal) "Track MFA checks by user")
 
-(defun mfa-check (user-id mfa-checks-by-user expiration-length)
+(defun mfa-check (user-id mfa-checks-by-user test-type)
   "Generalized logic for determining if a user needs to be prompted for MFA."
   (let* ((last-mfa-check (gethash user-id mfa-checks-by-user 'not-found))
          (mfa-check-not-found (eql 'not-found last-mfa-check))
          (last-mfa-check-expired (or
                                   mfa-check-not-found
-                                  (>
-                                   (- (get-universal-time) last-mfa-check)
-                                   expiration-length))))
+                                  (let ((test-threshold (mfa-test-threshold test-type)))
+                                    (case test-type
+                                      (mfa-time-test
+                                       (>
+                                        (- (get-universal-time) last-mfa-check)
+                                        test-threshold))
+                                      (mfa-count-test
+                                       (> last-mfa-check test-threshold)))))))
     (or
      mfa-check-not-found
      last-mfa-check-expired)))
 
-(defun needs-totp-check (user-id)
-  (mfa-check user-id *totp-checks* (* 60 10000))) 
+(defun mfa-test-type (enabled-mfa-schemes mfa-type)
+  "Determine MFA test type by number of enabled MFA checks. Assuming this isn't called when no MFA checks are enabled."
+  (case (length enabled-mfa-schemes)
+    (1
+     'mfa-time-test)
+    (otherwise
+     (case mfa-type
+       (totp-mfa
+        'mfa-count-test)
+       (webauthn-mfa
+        'mfa-time-test)))))
 
-(defun needs-webauthn-check (user-id)
-  (mfa-check user-id *webauthn-checks* (* 60 100)))
+(defun mfa-test-threshold (test-type)
+  "Get test threshold by test type."
+   (if (eq 'mfa-time-test test-type) (* 60 100) 20))
 
-;; (defun needs-mfa-check (user-id)
-;;   (or
-;;    (needs-webauthn-check user-id)
-;;    (needs-totp-check user-id)))
+(defun needs-totp-check (user-id enabled-mfa-schemes)
+  (let ((test-type (mfa-test-type enabled-mfa-schemes 'totp-mfa)))
+    (mfa-check user-id *totp-checks* test-type)))
+
+(defun needs-webauthn-check (user-id enabled-mfa-schemes)
+  (let ((test-type (mfa-test-type enabled-mfa-schemes 'webauthn-mfa)))
+    (mfa-check user-id *webauthn-checks* test-type)))
 
 (defmethod jfh-web-server:need-mfa-check ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
   "Determine whether the given user ID needs an MFA check, and what types. Return list of MFA schemes to use in an MFA check."
@@ -79,34 +97,46 @@
                      (list 
                       (if (and
                            (member 'webauthn-mfa enabled-mfa-schemes)
-                           (needs-webauthn-check user-id)) 
+                           (needs-webauthn-check user-id enabled-mfa-schemes)) 
                           'webauthn-mfa
                           'nil)
                       (if (and 
                            (member 'totp-mfa enabled-mfa-schemes)
-                           (needs-totp-check user-id))
+                           (needs-totp-check user-id enabled-mfa-schemes))
                           'totp-mfa
                           nil))))))
 
-(defmethod jfh-web-server:prompt-totp ((tbnl:*request* tbnl:request) user-id)
+(defun renew-mfa-check (user-id enabled-mfa-schemes mfa-checks mfa-type)
+  "Renew mfa-check."  
+  (case (mfa-test-type enabled-mfa-schemes mfa-type)
+    (mfa-time-test
+     ;; sliding expiration time
+     (setf (gethash user-id mfa-checks) (get-universal-time)))
+    (mfa-count-test
+     (incf (gethash user-id mfa-checks)))))
+
+(defmethod prompt-totp ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
   "Redirect to TOTP prompt. The conditions are: 1. No recent MFA check."
-  (when (needs-totp-setup user-id)
-    (tbnl:redirect (format nil "/totp-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
-  (when (needs-totp-check user-id)
-    (tbnl:redirect (format nil "/prompt-totp?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
+  (if (needs-totp-setup user-id)
+      (tbnl:redirect (format nil "/totp-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*))))
+      (tbnl:redirect (format nil "/prompt-totp?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   
-  ;; sliding webauthn expiration
-  (setf (gethash user-id *totp-checks*) (get-universal-time)))
+  (renew-mfa-check user-id enabled-mfa-schemes *totp-checks* 'totp-mfa))
   
-(defmethod jfh-web-server:prompt-webauthn ((tbnl:*request* tbnl:request) user-id)
+(defmethod prompt-webauthn ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
   "Redirect to WebAuthN prompt. The conditions are: 1. No recent MFA check."
-  (when (needs-webauthn-setup user-id)
-    (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
-  (when (needs-webauthn-check user-id)
-    (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
+  (if (needs-webauthn-setup user-id)
+      (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*))))
+      (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
   
-  ;; sliding webauthn expiration
-  (setf (gethash user-id *webauthn-checks*) (get-universal-time)))
+  (renew-mfa-check user-id enabled-mfa-schemes *webauthn-checks* 'webauthn-mfa))
+
+(defmethod jfh-web-server:prompt-mfa ((tbnl:*request* tbnl:request) user-id need-mfa-check enabled-mfa-schemes)
+  (cond
+    ((member 'totp-mfa need-mfa-check)
+     (prompt-totp tbnl:*request* user-id enabled-mfa-schemes))
+    ((member 'webauthn-mfa need-mfa-check)
+     (prompt-webauthn tbnl:*request* user-id enabled-mfa-schemes))))
 
 (defmethod jfh-security:encrypt ((totp-info totp-info) &optional key)
   (let ((encryption-key (or key (jfh-security:fetch-key))))

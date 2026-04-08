@@ -27,6 +27,12 @@ This probably needs some re-working but is serviceable for now."))
 
 (defgeneric get-webauthn-info (jfh-user:application-user-identifier))
 
+(defgeneric prompt-totp (request user-id enabled-mfa-schemes) 
+  (:documentation "Prompt for TOTP. Redirect to another page to prompt input."))
+
+(defgeneric prompt-webauthn (request user-id enabled-mfa-schemes) 
+  (:documentation "Prompt for WebAuthN. Redirect to another page to prompt input."))
+
 (defclass webauthn-challenge (jfh-store:user-settings)
   ((%challenge :accessor challenge :initarg :challenge)))
 
