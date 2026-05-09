@@ -16,12 +16,18 @@
    (%accept-client-cert
     :reader accept-client-cert
     :initarg :accept-client-cert)
-   (%enable-totp
-    :reader enable-totp
-    :initarg :enable-totp)
-   (%enable-webauthn
-    :reader enable-webauthn
-    :initarg :enable-webauthn))
+   (%site-registrable-domain
+    :reader site-registrable-domain
+    :initarg :site-registrable-domain
+    :documentation "relying party's ID. Example: site.com")
+   (%site-display-name
+    :reader site-display-name
+    :initarg :site-display-name
+    :documentation "Display on the front end as site's name. Can also use for replying party's name.")
+   (%site-origin
+    :reader site-origin
+    :initarg :site-origin
+    :documentation "Example: https://www.site.com; can also use as webauthn expected origin."))
   (:documentation "Web Application configurations."))
 
 (defclass web-application ()
@@ -36,8 +42,8 @@
     :initarg :web-configuration))
   (:documentation "Web application."))
 
-(defgeneric start-hunchentoot (web-configuration)
-  (:documentation "Input: web-configuration. Start hunchentoot web-server with the provided configuration settings."))
+(defgeneric start-hunchentoot (web-application)
+  (:documentation "Input: web-application. Start hunchentoot web-server with the provided configuration settings."))
 
 (defgeneric start-web-app (web-configuration)
   (:documentation "Input: web-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot, and optionally start swank."))

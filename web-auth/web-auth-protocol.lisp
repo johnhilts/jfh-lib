@@ -44,6 +44,25 @@ This probably needs some re-working but is serviceable for now."))
 (defclass webauthn-info (webauthn-info-readable)
   ((%public-key :accessor public-key :initarg :public-key)))
 
+(defclass auth-configuration (jfh-store:config-data)
+  ((%enable-totp
+    :reader enable-totp
+    :initarg :enable-totp)
+   (%enable-webauthn
+    :reader enable-webauthn
+    :initarg :enable-webauthn)
+   (%timeout :reader timeout :initarg :timeout))
+  (:documentation "Global settings for auth related settings."))
+
+(defclass webauthn-configuration (auth-configuration jfh-web-server:web-configuration) ()
+  (:documentation "Convenience class with all the settings used by Webauthn. Meant to be populated by objects that implement its parent types."))
+
+(defgeneric make-auth-configuration ()
+  (:documentation "Output: AUTH-CONFIGURATION object."))
+
+(defgeneric make-webauthn-configuration (auth-configuration web-configuration)
+  (:documentation "Output: WEBAUTHN-CONFIGURATION object."))
+
 (defclass user-webauthn-credential-index (jfh-store:user-index)
   ((%user-credential-id :reader user-credential-id :initarg :user-credential-id)))
 

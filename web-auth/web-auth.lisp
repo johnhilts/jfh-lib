@@ -1,6 +1,10 @@
 ;;;; functions for auth related concerns. 
 (cl:in-package #:jfh-web-auth)
 
+(defvar *auth-configuration*)
+
+(defvar *webauthn-configuration*)
+
 (defun get-authenticated-user ()
   "Get the authenticated user from server session."
   (let ((the-session (tbnl:start-session)))

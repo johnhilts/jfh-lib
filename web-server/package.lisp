@@ -13,8 +13,9 @@
    #:add-static-path-map
    #:define-api-endpoint
    #:fetch-or-create-user-session
-   #:enable-webauthn
-   #:enable-totp
+   #:site-origin
+   #:site-display-name
+   #:site-registrable-domain
    #:mfa-enabled-schemes
    #:need-mfa-check
    #:prompt-mfa

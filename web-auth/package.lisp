@@ -4,6 +4,8 @@
   (:use #:common-lisp)
   ;; (:local-nicknames (#:web #:jfh-web-core))
   (:export
+   #:auth
+   #:webauthn
    #:define-protected-page
    ;; #:authenticated-user
    #:authenticated-user-id

@@ -21,12 +21,12 @@
          (remhash user-id *mfa-checks*)
          user-id))))
 
-(defmethod jfh-web-server:mfa-enabled-schemes ((configuration jfh-web-server:web-configuration))
+(defmethod jfh-web-server:mfa-enabled-schemes ((configuration auth-configuration))
   "Determine whether MFA is enabled, and what types. Return list of supported and enabled MFA schemes."
   (remove-if-not #'identity
                  (list
-                  (if (jfh-web-server:enable-totp configuration) 'totp-mfa nil) 
-                  (if (jfh-web-server:enable-webauthn configuration) 'webauthn-mfa nil))))
+                  (if (enable-totp configuration) 'totp-mfa nil) 
+                  (if (enable-webauthn configuration) 'webauthn-mfa nil))))
 
 (defparameter *mfa-checks* (make-hash-table :test #'equal) "Track MFA checks by user")
 
@@ -115,19 +115,12 @@
     (mfa-count-test
      (incf (gethash user-id mfa-checks)))))
 
-(defmethod prompt-totp ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
-  "Redirect to TOTP prompt. The conditions are: 1. No recent MFA check."
-  (if (needs-totp-setup user-id)
-      (tbnl:redirect (format nil "/totp-setup?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*))))
-      (tbnl:redirect (format nil "/prompt-totp?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
-  
-  (renew-mfa-check user-id enabled-mfa-schemes *totp-checks* 'totp-mfa))
-  
 (defmethod prompt-webauthn ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
   "Redirect to WebAuthN prompt. The conditions are: 1. No recent MFA check."
+  (format t "uri: ~A~%" (tbnl:request-uri tbnl:*request*))
   (if (needs-webauthn-setup user-id)
-      (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*))))
-      (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))
+      (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode (clean-return-url (tbnl:request-uri tbnl:*request*)))))
+      (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (clean-return-url (tbnl:request-uri tbnl:*request*))))))
   
   (renew-mfa-check user-id enabled-mfa-schemes *webauthn-checks* 'webauthn-mfa))
 
@@ -219,3 +212,52 @@
   "Input: webauthn-info-readable. Persist user's webauthn info."
   (jfh-user:save-index application-user)
   (jfh-user:save-application-user application-user))
+
+(defmethod print-object ((auth-configuration auth-configuration) stream)
+  "Print auth configuration."
+  (print-unreadable-object (auth-configuration stream :type t)
+    (with-accessors
+          ((enable-totp enable-totp)
+           (enable-webauthn enable-webauthn)
+           (timeout timeout))
+        auth-configuration
+      (format stream
+              "Enable TOTP: ~:[false~;true~], Enable WebAuthN: ~:[false~;true~], Timeout: ~D"
+              enable-totp enable-webauthn timeout))))
+
+(defmethod print-object ((webauthn-configuration webauthn-configuration) stream)
+  "Print webauthn configuration."
+  (print-unreadable-object (webauthn-configuration stream :type t)
+    (with-accessors
+          ((enable-webauthn enable-webauthn)
+           (site-origin jfh-web-server:site-origin)
+           (site-display-name jfh-web-server:site-display-name)
+           (site-registrable-domain jfh-web-server:site-registrable-domain)
+           (timeout timeout))
+        webauthn-configuration
+      (format stream
+              "Enable WebAuthN: ~:[false~;true~], Origin: ~S, Display Name (RP Name) : ~S, Registrable Domain (RP ID) : ~S, Timeout: ~D"
+              enable-webauthn site-origin site-display-name site-registrable-domain timeout))))
+
+(defmethod make-auth-configuration ()
+  (jfh-store:make-instance* 'auth-configuration))
+
+(defmethod make-webauthn-configuration ((auth-configuration auth-configuration) (web-configuration jfh-web-server:web-configuration))
+  (make-instance 'webauthn-configuration
+                 :enable-webauthn (enable-webauthn auth-configuration)
+                 :site-origin (jfh-web-server:site-origin web-configuration)
+                 :site-display-name (jfh-web-server:site-display-name web-configuration)
+                 :site-registrable-domain (jfh-web-server:site-registrable-domain web-configuration)
+                 :timeout (timeout auth-configuration)))
+
+(defmethod jfh-configuration:bind-configuration ((type (eql 'auth)))
+  "Input: the type, auth. Output: a configuration object. Configuration objects are NOT in an inheritance hierarchy."
+  (let ((auth-configuration (make-auth-configuration)))
+    (setf *auth-configuration* auth-configuration)
+    auth-configuration))
+
+(defmethod jfh-configuration:bind-configuration ((type (eql 'webauthn)))
+  "Input: the type, webauthn. Output: a configuration object. (Most) configuration objects are NOT in an inheritance hierarchy."
+  (let ((webauthn-configuration (make-webauthn-configuration *auth-configuration* (jfh-web-server:web-configuration jfh-web-server:*web-application*))))
+    (setf *webauthn-configuration* webauthn-configuration)
+    webauthn-configuration))

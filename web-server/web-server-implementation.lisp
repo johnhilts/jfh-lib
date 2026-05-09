@@ -116,12 +116,13 @@
            (ssl-port ssl-port)
 	   (static-root static-root)
            (accept-client-cert accept-client-cert)
-           (enable-totp enable-totp)
-           (enable-webauthn enable-webauthn))
+           (site-registrable-domain site-registrable-domain)
+           (site-display-name site-display-name)
+           (site-origin site-origin))
         web-configuration
       (format stream
-              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~], Enable TOTP: ~:[false~;true~], Enable WebAuthN: ~:[false~;true~]"
-              http-port ssl-port static-root accept-client-cert enable-totp enable-webauthn))))
+              "~:[~:;HTTP Port: ~:*~D, ~]~:[~:;SSL Port: ~:*~D, ~]Static root path: ~S, Accepts Client Cert: ~:[false~;true~], Site Registrable Domain: ~S, Site Display Name: ~S, Site Origin: ~S"
+              http-port ssl-port static-root accept-client-cert site-registrable-domain site-display-name site-origin))))
 
 (defmethod print-object ((web-application web-application) stream)
   "Print web application."
