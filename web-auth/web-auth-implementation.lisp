@@ -158,6 +158,6 @@
 
 (defmethod jfh-configuration:bind-configuration ((type (eql 'webauthn)))
   "Input: the type, webauthn. Output: a configuration object. (Most) configuration objects are NOT in an inheritance hierarchy."
-  (let ((webauthn-configuration (make-webauthn-configuration jfh-auth:*auth-configuration* (jfh-web-server:web-configuration jfh-web-server:*web-application*))))
+  (let ((webauthn-configuration (make-webauthn-configuration (jfh-configuration:get-configuration 'jfh-auth:auth) (jfh-configuration:get-configuration 'jfh-web-server:web))))
     (setf jfh-auth:*webauthn-configuration* webauthn-configuration)
     webauthn-configuration))

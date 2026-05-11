@@ -49,13 +49,6 @@ This must be a (simple-array (unsigned-byte 8) (*)) of length 1–64 bytes."
       (t
        (error "Invalid User ID format: ~S" user-id)))))
 
-;; TODO - get these from configuration in app root
-;; "rp" == "relying party"
-;; (defparameter *rp-id* "webdevaxis.tech") ;; web-configuration.sexp *site-registrable-domain*
-;; (defparameter *rp-name* "Chasi") ;; web-configuration.sexp *site-display-name*
-;; (defparameter *webauth-expected-origin* "https://chasi.webdevaxis.tech") ;; web-configuration.sexp *site-origin*
-;; (defparameter *webauthn-timeout 60000) ;; (NEW) auth-configuration.sexp (NEW) + add other timeouts
-
 ;; TODO - get these from an sexp too
 (defparameter *webauthn-user-name* "jhiltington")
 (defparameter *webauthn-user-display-name* "John F Hiltington, III")
