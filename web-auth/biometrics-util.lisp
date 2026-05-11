@@ -67,20 +67,20 @@ Return the generated challenge and the JSON response."
         (user-id-bytes (user-id->bytes user-id)))
 
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'jfh-web-auth:webauthn-challenge :user-id user-id :challenge challenge))
+    (jfh-store:save-object (make-instance 'webauthn-challenge :user-id user-id :challenge challenge))
 
     (respond-json
      `(("publicKey"
         . (("challenge" . ,(base64url-encode challenge))
-           ("rp" . (("name" . ,(jfh-web-server:site-display-name *webauthn-configuration*))
-                    ("id" . ,(jfh-web-server:site-registrable-domain *webauthn-configuration*))))
+           ("rp" . (("name" . ,(jfh-web-server:site-display-name jfh-auth:*webauthn-configuration*))
+                    ("id" . ,(jfh-web-server:site-registrable-domain jfh-auth:*webauthn-configuration*))))
            ("user" . (("id" . ,(base64url-encode user-id-bytes))
                       ("name" . ,*webauthn-user-name*)
                       ("displayName" . ,*webauthn-user-display-name*)))
            ("pubKeyCredParams"
             . ((("type" . "public-key") ("alg" . -7))
                (("type" . "public-key") ("alg" . -257))))
-           ("timeout" . ,(timeout *webauthn-configuration*))
+           ("timeout" . ,(jfh-auth:timeout jfh-auth:*webauthn-configuration*))
            ("attestation" . "none")
            ("authenticatorSelection"
             . (("userVerification" . "preferred")))))))))
@@ -95,17 +95,17 @@ Return the generated challenge and the JSON response."
   "Save biometrics credentials.
   CREDENTIAL-ID is raw bytes, PUBLIC-KEY is COSE key map"
   (jfh-user:save-new-application-user
-   (make-instance 'webauthn-info-readable :user-id user-id :public-key-readable public-key :credential-id credential-id :sign-count sign-count)))
+   (make-instance 'jfh-auth:webauthn-info-readable :user-id user-id :public-key-readable public-key :credential-id credential-id :sign-count sign-count)))
 
 (defun expected-origin ()
   "Must match what the browser sees"
   (let ((ssl-port (jfh-web-server:ssl-port (jfh-web-server:web-configuration jfh-web-server:*web-application*))))
     (if (member ssl-port '(0 80 443))
-        (jfh-web-server:site-origin *webauthn-configuration*)
-        (format nil "~A:~D" (jfh-web-server:site-origin *webauthn-configuration*) ssl-port))))
+        (jfh-web-server:site-origin jfh-auth:*webauthn-configuration*)
+        (format nil "~A:~D" (jfh-web-server:site-origin jfh-auth:*webauthn-configuration*) ssl-port))))
 
 (defun webauthn-register-finish (request user-id)
-  (let* ((expected-challenge (challenge (jfh-store:make-instance* 'jfh-web-auth:webauthn-challenge :user-id user-id)))
+  (let* ((expected-challenge (jfh-auth:challenge (jfh-store:make-instance* 'jfh-auth:webauthn-challenge :user-id user-id)))
          (body (parse-json-body request))
          (raw-id-b64 (cdr (assoc :raw-id body)))
          (response (cdr (assoc :response body)))
@@ -134,7 +134,7 @@ Return the generated challenge and the JSON response."
               (parse-authenticator-data auth-data)
             (declare (ignore flags aaguid cred-id))
 
-            (let ((rp-id-hash-expected (sha256-bytes (string-to-utf8 (jfh-web-server:site-registrable-domain *webauthn-configuration*)))))
+            (let ((rp-id-hash-expected (sha256-bytes (string-to-utf8 (jfh-web-server:site-registrable-domain jfh-auth:*webauthn-configuration*)))))
               (unless (equalp rp-id-hash rp-id-hash-expected)
                 (error "RP ID hash mismatch: ~A." rp-id-hash)))
 
@@ -149,13 +149,13 @@ Return the generated challenge and the JSON response."
         (credentials (user-webauthn-credentials user-id)))
     
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'jfh-web-auth:webauthn-challenge :user-id user-id :challenge challenge))
+    (jfh-store:save-object (make-instance 'jfh-auth:webauthn-challenge :user-id user-id :challenge challenge))
 
     (respond-json
      `(("publicKey"
         . (("challenge" . ,(base64url-encode challenge))
-           ("rpId" . ,(jfh-web-server:site-registrable-domain *webauthn-configuration*))
-           ("timeout" . ,(timeout *webauthn-configuration*))
+           ("rpId" . ,(jfh-web-server:site-registrable-domain jfh-auth:*webauthn-configuration*))
+           ("timeout" . ,(jfh-auth:timeout jfh-auth:*webauthn-configuration*))
            ("userVerification" . "preferred")
            ("allowCredentials"
             . ,(mapcar
@@ -180,14 +180,14 @@ SIGNED-BYTES is authenticatorData || SHA256(clientDataJSON).
 SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
   (multiple-value-bind (x-bytes y-bytes)
       (cose-key->xy cose-public-key)
-    (verify-es256 x-bytes y-bytes signed-bytes signature)))
+    (jfh-auth:verify-es256 x-bytes y-bytes signed-bytes signature)))
 
 (defun validate-client-data-json (client-data-json user-id)
   (multiple-value-bind (client-type client-challenge client-origin)
       (parse-client-data-json client-data-json)
     (unless (string= client-type "webauthn.get")
       (error "Invalid clientData type: ~A" client-type))
-    (let* ((expected-challenge (challenge (jfh-store:make-instance* 'jfh-web-auth:webauthn-challenge :user-id user-id)))
+    (let* ((expected-challenge (jfh-auth:challenge (jfh-store:make-instance* 'jfh-auth:webauthn-challenge :user-id user-id)))
            (coerced-expected-challenge (coerce expected-challenge 'octets)))
       (unless (equal client-challenge (base64url-encode coerced-expected-challenge))
         (error "Challenge mismatch: ~A" client-challenge)))
@@ -195,7 +195,7 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
       (error "Origin mismatch: ~A." client-origin))))
 
 (defun validate-rpid (rp-id-hash)
-  (let ((rp-id-hash-expected (sha256-bytes (string-to-utf8 (jfh-web-server:site-registrable-domain *webauthn-configuration*)))))
+  (let ((rp-id-hash-expected (sha256-bytes (string-to-utf8 (jfh-web-server:site-registrable-domain jfh-auth:*webauthn-configuration*)))))
     (unless (equalp rp-id-hash rp-id-hash-expected)
       (error "RP ID hash mismatch: ~A." rp-id-hash))))
 
@@ -219,8 +219,8 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
             (validate-rpid rp-id-hash)
             
             (let* ((user-credential (find-credential-by-id raw-id)) ;; we also should have the user ID by this point too
-                   (stored-pubkey (public-key user-credential))
-                   (stored-sign-count (sign-count user-credential)))
+                   (stored-pubkey (jfh-auth:public-key user-credential))
+                   (stored-sign-count (jfh-auth:sign-count user-credential)))
               (let* ((client-hash (sha256-bytes client-data-json))
                      (signed-bytes (concatenate 'octets
                                                 auth-data
@@ -231,33 +231,33 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
                          (> new-sign-count stored-sign-count))
                 (update-credential-sign-count user-credential new-sign-count))
 
-              (refresh-mfa-expiration (jfh-store:user-id user-credential) 'webauthn-mfa)
+              (jfh-auth:refresh-mfa-expiration (jfh-store:user-id user-credential) 'jfh-auth:webauthn-mfa)
 
               (format t "Finished login!~%")
               (respond-json '(("status" . "ok"))))))))))
 
 (defun user-webauthn-credentials (user-id)
   "Return list/vector of credentials for user"
-  (let* ((readable-object (jfh-store:make-instance* 'webauthn-info-readable :user-id user-id)))
-    (make-instance 'webauthn-info
-                   :credential-id (credential-id readable-object)
+  (let* ((readable-object (jfh-store:make-instance* 'jfh-auth:webauthn-info-readable :user-id user-id)))
+    (make-instance 'jfh-auth:webauthn-info
+                   :credential-id (jfh-auth:credential-id readable-object)
                    :user-id (jfh-store:user-id readable-object)
-                   :public-key (public-key-readable readable-object)
-                   :sign-count (sign-count readable-object))))
+                   :public-key (jfh-auth:public-key-readable readable-object)
+                   :sign-count (jfh-auth:sign-count readable-object))))
 
 (defun find-credential-by-id (credential-id)
   "Lookup credential for user by credential-id bytes"
   (let ((readable-object (find-user-by-credential credential-id)))
-    (make-instance 'webauthn-info
-                   :credential-id (credential-id readable-object)
+    (make-instance 'jfh-auth:webauthn-info
+                   :credential-id (jfh-auth:credential-id readable-object)
                    :user-id (jfh-store:user-id readable-object)
-                   :public-key (public-key-readable readable-object)
-                   :sign-count (sign-count readable-object))))
+                   :public-key (jfh-auth:public-key-readable readable-object)
+                   :sign-count (jfh-auth:sign-count readable-object))))
 
 (defun update-credential-sign-count (credential new-count)
   "Persist updated sign count"
-  (let* ((readable-object (jfh-store:make-instance* 'webauthn-info-readable :user-id (jfh-store:user-id credential))))
-    (setf (sign-count readable-object) new-count)
+  (let* ((readable-object (jfh-store:make-instance* 'jfh-auth:webauthn-info-readable :user-id (jfh-store:user-id credential))))
+    (setf (jfh-auth:sign-count readable-object) new-count)
     (jfh-store:save-object readable-object)))
 
 (defun extract-credential-id (request)
@@ -269,7 +269,7 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
   (jfh-user:get-user-info (make-instance 'application-user-webauthn-credentials :user-credential-id credential-id-bytes)))
 
 (defun credential-id-bytes (cred)
-  (credential-id cred))
+  (jfh-auth:credential-id cred))
 
 ;; more helpers
 (defun utf8-bytes-to-string (bytes)

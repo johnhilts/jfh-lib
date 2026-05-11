@@ -6,14 +6,12 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:cffi #:cl+ssl #:hunchentoot #:jfh-security #:jfh-user #:jfh-web-server #:cl-base32 #:cl-one-time-passwords #:ironclad #:cbor #:cl-json)
+  :depends-on (#:cffi #:cl+ssl #:hunchentoot #:jfh-security #:jfh-auth #:jfh-user #:jfh-web-server #:cl-base32 #:cl-one-time-passwords #:ironclad #:cbor #:cl-json)
   :components ((:file package)
                (:file macros)
-               (:file c-wrapper)
                (:file web-auth-protocol)
                (:file web-auth-implementation)
                (:file mfa)
                (:file web-auth)
-               (:file certificate-util)
                (:file biometrics-util)
                (:file pages)))

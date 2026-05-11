@@ -21,9 +21,9 @@
   (if authed
       (progn
         (jfh-web-server:fetch-or-create-user-session (make-instance 'jfh-user:application-user-login :user-login (jfh-user:user-login user-info)))
-        (on-successful-auth) ;; 'web-app:on-auth-hook
+        (jfh-auth:on-auth-success) ;; 'web-app:on-auth-hook
         (tbnl:redirect redirect-back-to)) ;; to test this, need to mock *request* and *acceptor*
-      (show-auth-failure)))
+      (jfh-auth:on-auth-failure)))
 
 (tbnl:define-easy-handler (login-page-handler :uri "/login") (redirect-back-to)
   (login-page redirect-back-to))
@@ -37,7 +37,7 @@
 	  "~&www-authorization: ~A, authorization: *** ~A ***~%"
 	  (tbnl:header-out :www-authenticate)
 	  (tbnl:header-out "authorization"))
-  (remhash (tbnl:session-value 'the-session) *session-user-map*)
+  (remhash (tbnl:session-value 'the-session) jfh-auth:*session-user-map*)
   (tbnl:delete-session-value 'the-session)
   (setf (tbnl:header-out :www-authenticate) nil)
   (tbnl:redirect "/login"))

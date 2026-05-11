@@ -19,7 +19,7 @@
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
       (when *print-sensitive* (format t "Link fingerprint to session using: ~A~%" client-id))
       (let* ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
-             (enabled-mfa-schemes (jfh-web-server:mfa-enabled-schemes *web-configuration*))
+             (enabled-mfa-schemes (jfh-web-server:mfa-enabled-schemes (jfh-auth:auth-configuration *web-application*)))
              (need-mfa-check (need-mfa-check tbnl:*request* user-id enabled-mfa-schemes)))
         (when need-mfa-check
           (prompt-mfa tbnl:*request* user-id need-mfa-check enabled-mfa-schemes)))))
@@ -166,20 +166,20 @@
         (format t "~&ssl: ~A, reg: ~A~%" ssl-acceptor-instance acceptor-instance)
 	(format t "~&hunchentoot started~%")))))
 
-(defmethod make-web-application ((hunchentoot-ssl-acceptor tbnl:easy-ssl-acceptor) (hunchentoot-acceptor tbnl:easy-acceptor) (web-configuration web-configuration))
+(defmethod make-web-application ((hunchentoot-ssl-acceptor tbnl:easy-ssl-acceptor) (hunchentoot-acceptor tbnl:easy-acceptor) (web-configuration web-configuration) (auth-configuration jfh-auth:auth-configuration))
   "Constructor for web-application - handles all parameters."
-  (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))
+  (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration auth-configuration))
 
-(defmethod make-web-application ((hunchentoot-ssl-acceptor tbnl:easy-ssl-acceptor) (hunchentoot-acceptor (eql nil)) (web-configuration web-configuration))
+(defmethod make-web-application ((hunchentoot-ssl-acceptor tbnl:easy-ssl-acceptor) (hunchentoot-acceptor (eql nil)) (web-configuration web-configuration) (auth-configuration jfh-auth:auth-configuration))
   "Constructor for web-application - accepts nil for http."
-  (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))
+  (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration auth-configuration))
 
-(defmethod make-web-application ((hunchentoot-ssl-acceptor (eql nil)) (hunchentoot-acceptor tbnl:easy-acceptor) (web-configuration web-configuration))
+(defmethod make-web-application ((hunchentoot-ssl-acceptor (eql nil)) (hunchentoot-acceptor tbnl:easy-acceptor) (web-configuration web-configuration) (auth-configuration jfh-auth:auth-configuration))
   "Constructor for web-application - accepts nil for ssl."
-  (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration))
+  (%make-web-application-core hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration auth-configuration))
 
-(defmethod start-web-app ((web-configuration web-configuration))
-  "Input: web-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot."
+(defmethod start-web-app ((web-configuration web-configuration) (auth-configuration jfh-auth:auth-configuration))
+  "Input: web-configuration and auth-configuration object. Output: web-application object. This will start the web application running on top of hunchentoot."
   (setf tbnl:*session-max-time* (* 24 7 60 60))
   (setf tbnl:*rewrite-for-session-urls* nil)
   (add-static-content-handlers)
@@ -187,7 +187,7 @@
       (ssl-acceptor acceptor)
       (start-hunchentoot web-configuration)
     (format t "~&ssl: ~A, reg: ~A~%" ssl-acceptor acceptor)
-    (make-web-application ssl-acceptor acceptor web-configuration)))
+    (make-web-application ssl-acceptor acceptor web-configuration auth-configuration)))
 ;; how to find: (find-method #'start-web-app nil (list (find-class 'application-configuration)))
 
 (defmethod stop-hunchentoot ((web-application web-application))
@@ -215,6 +215,6 @@
   "Input: type such as 'app, 'remoting, or 'web. Output: configuration object. Configuration objects are NOT in an inheritance hierarchy."
   *web-configuration*)
 
-(defmethod web-application-shell ((web-configuration web-configuration))
+(defmethod web-application-shell ((web-configuration web-configuration) (auth-configuration jfh-auth:auth-configuration))
   "Use this to start the web application."
-  (setf *web-application* (start-web-app web-configuration)))
+  (setf *web-application* (start-web-app web-configuration auth-configuration)))

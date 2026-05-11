@@ -39,14 +39,17 @@
     :initarg :hunchentoot-ssl-acceptor)
    (%web-configuration
     :reader web-configuration
-    :initarg :web-configuration))
+    :initarg :web-configuration)
+   (%auth-configuration
+    :reader jfh-auth:auth-configuration
+    :initarg :auth-configuration))
   (:documentation "Web application."))
 
 (defgeneric start-hunchentoot (web-application)
   (:documentation "Input: web-application. Start hunchentoot web-server with the provided configuration settings."))
 
-(defgeneric start-web-app (web-configuration)
-  (:documentation "Input: web-configuration object and path maps for static assets. Output: web-application object. This will start the web application running on top of hunchentoot, and optionally start swank."))
+(defgeneric start-web-app (web-configuration auth-configuration)
+  (:documentation "Input: web-configuration and auth-configuration object. Output: web-application object. This will start the web application running on top of hunchentoot, and optionally start swank."))
 ;; (documentation 'start-web-app 'function)
 
 (defgeneric stop-hunchentoot (web-application)
@@ -56,10 +59,10 @@
   (:documentation "Input: web-application objects. Output: #:web-app-stopped. This will stop the web application. The HTTP port will be released."))
 ;; (documentation 'stop-web-app 'function)
 
-(defgeneric make-web-application (tbnl:easy-ssl-acceptor tbnl:easy-acceptor web-configuration)
-  (:documentation "Input: hunchentoot easy-ssl-acceptor, easy-acceptor, web-configuration (default settings) object. Output web-application object."))
+(defgeneric make-web-application (tbnl:easy-ssl-acceptor tbnl:easy-acceptor web-configuration auth-configuration)
+  (:documentation "Input: hunchentoot easy-ssl-acceptor, easy-acceptor, web-configuration (default settings), auth-configuration object. Output web-application object."))
 
-(defgeneric web-application-shell (web-configuration)
+(defgeneric web-application-shell (web-configuration auth-configuration)
   (:documentation "Use this to start the web application."))
 
 (defclass ssl-client-cert-acceptor (tbnl:easy-ssl-acceptor) ())

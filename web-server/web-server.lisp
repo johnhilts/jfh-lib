@@ -35,12 +35,13 @@ Output: web-configuration object."
 
 ;; TODO: should this part go into "internal"? #-end-#
  
-(defun %make-web-application-core (hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration)
+(defun %make-web-application-core (hunchentoot-ssl-acceptor hunchentoot-acceptor web-configuration auth-configuration)
   "Constructor for web-application"
   (make-instance 'web-application
 		 :hunchentoot-acceptor hunchentoot-acceptor
 		 :hunchentoot-ssl-acceptor hunchentoot-ssl-acceptor
-		 :web-configuration web-configuration))
+		 :web-configuration web-configuration
+                 :auth-configuration auth-configuration))
 
 
 (defun add-static-content-handlers ()

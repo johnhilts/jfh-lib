@@ -1,4 +1,4 @@
-;;;; macros for auth related concerns. 
+;;;; macros for web-auth related concerns. 
 
 (in-package #:jfh-web-auth)
 

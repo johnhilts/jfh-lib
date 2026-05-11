@@ -1,16 +1,6 @@
 ;;;; functions for auth related concerns. 
 (cl:in-package #:jfh-web-auth)
 
-(defvar *auth-configuration*)
-
-(defvar *webauthn-configuration*)
-
-(defun get-authenticated-user ()
-  "Get the authenticated user from server session."
-  (let ((the-session (tbnl:start-session)))
-    (jfh-web-server::my-log (format nil "From G-A-U: ~A,~A~%" (tbnl:session-value 'jfh-web-server::the-client-key the-session) (tbnl:session-cookie-value the-session)))
-    (tbnl:session-value 'jfh-web-auth:the-session-key the-session)))
-
 (defun validate-signup-parameters (name user-login password confirm-password)
   "Validate the values used to signup a user."
   (flet ((exists (user-login)
@@ -31,12 +21,8 @@
        (zerop (length signup-validation-failure-reasons))
        signup-validation-failure-reasons))))
 
-(defun needs-totp-setup (user-id)
-  "Check whether user needs TOTP setup. The check is based on whether the TOTP key is populated; it defaults to an empty string, so check using LENGTH is safe."
-  (let ((totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id))))
-    (or (not totp-info) (zerop (length (jfh-security:cipher totp-info))))))
-
-(defun needs-webauthn-setup (user-id)
-  "Check whether user needs webauthn setup. The check is based on whether a WEBAUTHN-INFO-READABLE exists for the user. Default to an empty string, so using LENGTH is safe."
-  (let ((webauthn-info (get-webauthn-info (make-instance 'jfh-user:application-user-id :user-id user-id))))
-    (or (not webauthn-info) (zerop (length (credential-id webauthn-info))))))
+(defun get-authenticated-user ()
+  "Get the authenticated user from server session."
+  (let ((the-session (tbnl:start-session)))
+    (jfh-web-server::my-log (format nil "From G-A-U: ~A,~A~%" (tbnl:session-value 'jfh-web-server::the-client-key the-session) (tbnl:session-cookie-value the-session)))
+    (tbnl:session-value 'jfh-web-auth:the-session-key the-session)))

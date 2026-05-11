@@ -22,6 +22,7 @@
    #:make-user-login-index-entry
    #:make-application-user
    #:read-user-info
+   #:get-secure-user-info
    #:save-index
    #:save-new-application-user
    #:save-application-user
