@@ -30,7 +30,7 @@
   (when (not key)
     (warn "encryption key not set."))
   
-  (let* ((salt (coerce  (iv info) '(vector (unsigned-byte 8)))) ;; TODO - I think we can drop COERCE
+  (let* ((salt (coerce (iv info) '(vector (unsigned-byte 8))))
          (cipher (cl-base64:base64-string-to-usb8-array (cipher info)))
          (cipher-decrypt (ironclad:make-cipher :aes
                                                :key key

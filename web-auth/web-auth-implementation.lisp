@@ -62,7 +62,7 @@
 
 (defmethod jfh-auth:get-totp-info ((application-user-id jfh-user:application-user-id))
   (let ((user-id (jfh-store:user-id application-user-id)))
-    (jfh-store:make-instance* 'totp-info :user-id user-id)))
+    (jfh-store:make-instance* 'jfh-auth:totp-info :user-id user-id)))
 
 (defmethod get-webauthn-info ((application-user-id jfh-user:application-user-id))
   (let ((user-id (jfh-store:user-id application-user-id)))

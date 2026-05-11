@@ -4,7 +4,7 @@
 (defun get-totp-key (user-id)
   "Just for abstracting how we get the TOTP key"
   (let* ((cached-totp-key (gethash user-id jfh-auth:*totp-keys*))
-         (totp-info (get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id)))
+         (totp-info (jfh-auth:get-totp-info (make-instance 'jfh-user:application-user-id :user-id user-id)))
          (totp-key (or cached-totp-key (if totp-info (jfh-security:decrypt totp-info) ""))))
     (setf
      (gethash user-id jfh-auth:*totp-keys*)
