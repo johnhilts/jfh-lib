@@ -15,10 +15,9 @@
   (let ((mfa-checks-by-user (if (eql mfa-type 'webauthn-mfa) *webauthn-checks* *totp-checks*)))
     (setf (gethash user-id mfa-checks-by-user) time)))
 
-;; TODO might be good to have MFA actions that specialize on types such as a "TOTP"
-(defun generate-mfa-secret ()
+(defun generate-totp-secret ()
   "Generate a 20 byte secret and output as hex string suitable for persistence."
-  (jfh-utility::byte-array-to-hex-string (ironclad:random-data 20)))
+  (jfh-utility:byte-array-to-hex-string (ironclad:random-data 20)))
 
 (defun print-totp-url (base-url user-id totp)
   "Print a TOTP secret URL suitable for an authenticator app.

@@ -22,6 +22,7 @@
    #:enable-webauthn
    #:enable-totp
    ;;#:validate-mfa-totp
+   #:generate-totp-secret
    #:refresh-mfa-expiration
    #:webauthn-mfa
    #:totp-mfa
