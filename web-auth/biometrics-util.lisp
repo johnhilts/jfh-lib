@@ -49,34 +49,30 @@ This must be a (simple-array (unsigned-byte 8) (*)) of length 1–64 bytes."
       (t
        (error "Invalid User ID format: ~S" user-id)))))
 
-;; TODO - get these from an sexp too
-(defparameter *webauthn-user-name* "jhiltington")
-(defparameter *webauthn-user-display-name* "John F Hiltington, III")
-
-(defun webauthn-register-start (user-id)
+(defun webauthn-register-start (user-id user-login user-name)
   "Register user biometrics for webauthn.
 Return the generated challenge and the JSON response."
   (let ((challenge (generate-challenge))
         (user-id-bytes (user-id->bytes user-id)))
 
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'webauthn-challenge :user-id user-id :challenge challenge))
+    (jfh-store:save-object (make-instance 'jfh-auth:webauthn-challenge :user-id user-id :challenge challenge))
 
     (respond-json
-     `(("publicKey"
-        . (("challenge" . ,(base64url-encode challenge))
-           ("rp" . (("name" . ,(jfh-web-server:site-display-name jfh-auth:*webauthn-configuration*))
-                    ("id" . ,(jfh-web-server:site-registrable-domain jfh-auth:*webauthn-configuration*))))
-           ("user" . (("id" . ,(base64url-encode user-id-bytes))
-                      ("name" . ,*webauthn-user-name*)
-                      ("displayName" . ,*webauthn-user-display-name*)))
-           ("pubKeyCredParams"
-            . ((("type" . "public-key") ("alg" . -7))
-               (("type" . "public-key") ("alg" . -257))))
-           ("timeout" . ,(jfh-auth:timeout jfh-auth:*webauthn-configuration*))
-           ("attestation" . "none")
-           ("authenticatorSelection"
-            . (("userVerification" . "preferred")))))))))
+       `(("publicKey"
+          . (("challenge" . ,(base64url-encode challenge))
+             ("rp" . (("name" . ,(jfh-web-server:site-display-name jfh-auth:*webauthn-configuration*))
+                      ("id" . ,(jfh-web-server:site-registrable-domain jfh-auth:*webauthn-configuration*))))
+             ("user" . (("id" . ,(base64url-encode user-id-bytes))
+                        ("name" . ,user-login)
+                        ("displayName" . ,user-name)))
+             ("pubKeyCredParams"
+              . ((("type" . "public-key") ("alg" . -7))
+                 (("type" . "public-key") ("alg" . -257))))
+             ("timeout" . ,(jfh-auth:timeout jfh-auth:*webauthn-configuration*))
+             ("attestation" . "none")
+             ("authenticatorSelection"
+              . (("userVerification" . "preferred")))))))))
 
 (defun parse-json-body (request)
   "Return the JSON request body as an alist."
