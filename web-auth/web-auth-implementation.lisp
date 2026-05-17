@@ -13,11 +13,15 @@
   (if (tbnl:session-value 'the-session-key)
       (tbnl:session-value 'the-session-key)
       (setf
-       (tbnl:session-value 'the-session-key) ;; TODO - is this thread safe??
-       ;; TODO add 401 if we can't find a match
-       (let ((user-id (jfh-store:user-id (jfh-user:get-secure-user-info user-identifier))))
-         (remhash user-id jfh-auth:*mfa-checks*)
-         user-id))))
+       (tbnl:session-value 'the-session-key)
+       (handler-bind
+           ((jfh-store:no-data-match
+              (lambda (c)
+                (format t "~&No matching data found! CLASS-NAME: ~A~%USER ID: ~A~%WHERE: ~A~%" (jfh-store:the-class-name c) (jfh-store:user-id c) (jfh-store:where c))
+                (return-from jfh-web-server:fetch-or-create-user-session nil))))
+         (let ((user-id (jfh-store:user-id (jfh-user:get-secure-user-info user-identifier))))
+           (remhash user-id jfh-auth:*mfa-checks*)
+           user-id)))))
 
 (defmethod jfh-web-server:mfa-enabled-schemes ((configuration jfh-auth:auth-configuration))
   "Determine whether MFA is enabled, and what types. Return list of supported and enabled MFA schemes."

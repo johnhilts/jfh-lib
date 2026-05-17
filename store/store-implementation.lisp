@@ -141,7 +141,9 @@
 
 (defmethod make-instance* ((class-name symbol) &key where user-id)
   ;; TODO - (ERROR) if trying to apply MAKE-INSTANCE* to an index type?
-  (let ((file-contents (get-file-contents user-id class-name where)))  ;; TODO - SIGNAL jfh-store:no-data-match if NIL
+  (let ((file-contents (get-file-contents user-id class-name where)))
+    (when (null file-contents)
+      (signal 'no-data-match :the-class-name class-name :user-id user-id :where where)) ;; NOTE: using "THE-CLASS-NAME" to avoid clash with #'CL:CLASS-NAME
     (unless (null file-contents)
       (apply #'make-instance class-name file-contents))))
 

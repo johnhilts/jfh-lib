@@ -11,7 +11,7 @@
  cffi:*foreign-library-directories*)
 
 (cffi:define-foreign-library libauthn-es256
-  (:linux "libauthn-es256.so") ;; TODO do we need both of these?
+  (:linux "libauthn-es256.so") ;; NOTE: defaults to the Linux option anyway, but we can add more options here if ever necessary
   (t "libauthn-es256.so"))
 
 (cffi:use-foreign-library libauthn-es256)

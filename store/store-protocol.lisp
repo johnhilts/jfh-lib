@@ -31,6 +31,11 @@
 
 (defvar *non-serialized-fields* ())
 
+(define-condition no-data-match (condition)
+  ((%the-class-name :accessor the-class-name :initarg :the-class-name)
+   (%user-id :accessor user-id :initarg :user-id :initform nil)
+   (%where :accessor where :initarg :where :initform nil)))
+
 (defgeneric make-instance* (class-name &key where user-id))
 (defgeneric serialize-object->list (object))
 (defgeneric save-object (object &key save-name))
