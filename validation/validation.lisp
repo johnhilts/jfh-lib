@@ -9,26 +9,12 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
      (if mapping (text mapping) (id field))
      (if mapping (ui-element-id mapping) ""))))
 
-(defun validate-required (field-list mappings)
-  (loop for field in field-list
-        when (zerop (length (value field)))
-          collect
-          (multiple-value-bind
-                (text ui-element-id)
-              (get-field-mapping field mappings)
-            (make-instance 'validation-failure
-                           :message (format nil "~A is required." text)
-                           :id (id field) :ui-element-id ui-element-id))))
-
-(defun validate-minimum-length (field-list mappings)
-  (loop for field in field-list
-        when (< (length (value field)) (minimum field))
-          collect
-          (multiple-value-bind
-                (text ui-element-id)
-              (get-field-mapping field mappings)
-            (make-instance 'validation-failure
-                           :message (format nil "~A requires at least ~D characters." text (minimum field)) :id (id field) :ui-element-id ui-element-id))))
+(defun validate-main (field-list mappings)
+  (loop for field in field-list when (is-invalid-p field)
+        collect (multiple-value-bind (text ui-element-id)
+                    (get-field-mapping field mappings)
+                  (make-instance 'validation-failure :message (build-validation-message field text)
+                                                     :id (id field) :ui-element-id ui-element-id))))
 
 (defun map-validation-fields (field text ui-element-id)
   (cons field (make-instance 'validation-field-map-value :text text :ui-element-id ui-element-id)))
@@ -42,16 +28,20 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
                  (cond  
                    ((string-equal (symbol-name (car param)) "required")
                     (let ((field-list (gensym "field-list")))
-                      `(let ((,field-list (list ,@(mapcar (lambda (e) `(make-instance 'validation-field :id ',e :value ,e)) (cadr param)))))
-                         (validate-required ,field-list ,field-maps-var))))
+                      `(let ((,field-list (list ,@(mapcar (lambda (e) `(make-instance 'required-field :id ',e :value ,e)) (cadr param)))))
+                         (validate-main ,field-list ,field-maps-var))))
                    ((string-equal (symbol-name (car param)) "minimum-length")
                     (let ((field-list (gensym "field-list")))
                       `(let ((,field-list (list ,@(mapcar (lambda (e)
                                                             (let ((field (car e))
                                                                   (minimum (cadr e)))
-                                                              `(make-instance 'range-field :id ',field :value ,field :minimum ,minimum)))
+                                                              `(make-instance 'minimum-length-field :id ',field :value ,field :minimum ,minimum)))
                                                           (cadr param)))))
-                         (validate-minimum-length ,field-list ,field-maps-var))))
+                         (validate-main ,field-list ,field-maps-var))))
+                   ((string-equal (symbol-name (car param)) "custom")
+                    (let ((field-list (gensym "field-list")))
+                      `(let ((,field-list (list ,@(mapcar (lambda (e) `(make-instance 'validation-field :id ',e :value ,e)) (cadr param)))))
+                         (,(caddr param) ,field-list ,field-maps-var))))
                    (t (format nil "No matches! (car param) == ~A~%" (car param)))))))
     (let ((pass-block (cdr pass))
           (fail-block (cdr fail)))

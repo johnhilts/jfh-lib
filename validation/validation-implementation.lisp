@@ -28,3 +28,14 @@
       (format stream
 	      "ID: ~A, Message: ~S, UI ELEMENT ID: ~S" id message ui-element-id))))
 
+(defmethod is-invalid-p ((validation-field required-field))
+  (zerop (length (value validation-field))))
+
+(defmethod build-validation-message ((validation-field required-field) text)
+  (format nil "~A is required" text))
+
+(defmethod is-invalid-p ((validation-field minimum-length-field))
+  (< (length (value validation-field)) (minimum validation-field)))
+
+(defmethod build-validation-message ((validation-field minimum-length-field) text)
+  (format nil "~A requires at least ~D characters." text (minimum validation-field)))

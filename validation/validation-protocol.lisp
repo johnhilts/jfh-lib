@@ -4,9 +4,15 @@
   ((%id :accessor id :initarg :id)
    (%value :accessor value :initarg :value)))
 
+(defclass required-field (validation-field)
+  ())
+
 (defclass range-field (validation-field)
   ((%minimum :accessor minimum :initarg :minimum)
    (%maximum :accessor maximum :initarg :maximum :initform nil)))
+
+(defclass minimum-length-field (range-field)
+  ())
 
 (defclass length-range-field (range-field) ())
 
@@ -18,4 +24,8 @@
   ((%id :accessor id :initarg :id)
    (%message :accessor message :initarg :message)
    (%ui-element-id :accessor ui-element-id :initarg :ui-element-id)))
+
+(defgeneric is-invalid-p (validation-field))
+
+(defgeneric build-validation-message (validation-field text))
 
