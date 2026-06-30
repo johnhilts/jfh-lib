@@ -19,6 +19,11 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
 (defun map-validation-fields (field text ui-element-id)
   (cons field (make-instance 'validation-field-map-value :text text :ui-element-id ui-element-id)))
 
+(defun symbol-equal (input-symbol compare-symbol)
+  (string-equal
+   (symbol-name input-symbol)
+   (symbol-name compare-symbol)))
+
 (defmacro with-validation (mappings validations pass fail)
   (let* ((validation-results (gensym "validation-results"))
          (field-maps-var (gensym "field-maps"))
@@ -26,11 +31,11 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
            (loop for param in validations
                  collect
                  (cond  
-                   ((string-equal (symbol-name (car param)) "required")
+                   ((symbol-equal  (car param) 'required)
                     (let ((field-list (gensym "field-list")))
                       `(let ((,field-list (list ,@(mapcar (lambda (e) `(make-instance 'required-field :id ',e :value ,e)) (cadr param)))))
                          (validate-main ,field-list ,field-maps-var))))
-                   ((string-equal (symbol-name (car param)) "minimum-length")
+                   ((symbol-equal  (car param) 'minimum-length)
                     (let ((field-list (gensym "field-list")))
                       `(let ((,field-list (list ,@(mapcar (lambda (e)
                                                             (let ((field (car e))
@@ -38,7 +43,7 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
                                                               `(make-instance 'minimum-length-field :id ',field :value ,field :minimum ,minimum)))
                                                           (cadr param)))))
                          (validate-main ,field-list ,field-maps-var))))
-                   ((string-equal (symbol-name (car param)) "custom")
+                   ((symbol-equal (car param) 'custom)
                     (let ((field-list (gensym "field-list")))
                       `(let ((,field-list (list ,@(mapcar (lambda (e) `(make-instance 'validation-field :id ',e :value ,e)) (cadr param)))))
                          (,(caddr param) ,field-list ,field-maps-var))))
@@ -52,12 +57,12 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
                ,@pass-block)
              (let ((,(caar fail-block) (reverse
                                         (reduce (lambda (acc cur)
-                                                  (push (message cur) acc))
+                                                  (pushnew (message cur) acc))
                                                 ,validation-results
                                                 :initial-value ())))
                    (,(cadar fail-block) (reverse
                                          (reduce (lambda (acc cur)
-                                                   (push (ui-element-id cur) acc))
+                                                   (pushnew (ui-element-id cur) acc))
                                                  ,validation-results
                                                  :initial-value ()))))
                ,@(cdr fail-block)))))))
