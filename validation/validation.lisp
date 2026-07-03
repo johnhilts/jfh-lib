@@ -10,6 +10,7 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
      (if mapping (ui-element-id mapping) ""))))
 
 (defun validate-main (field-list mappings)
+  "Input: a list of objects of type validation-field or a sub-type, and an attribute map for field IDs (optional) . Output: a list of VALIDATION-FAILURE objexts."
   (loop for field in field-list when (is-invalid-p field)
         collect (multiple-value-bind (text ui-element-id)
                     (get-field-mapping field mappings)
@@ -24,6 +25,25 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
    (symbol-name input-symbol)
    (symbol-name compare-symbol)))
 
+(defgeneric validate-by-type (type field-maps validation-fields))
+
+(defmethod validate-by-type ((type (eql 'required-field)) field-maps validation-fields)
+  (let ((field-list (mapcar (lambda (e) (make-instance type :id (car e) :value (cadr e))) validation-fields)))
+    (validate-main field-list field-maps)))
+
+(defmethod validate-by-type ((type (eql 'minimum-length-field)) field-maps validation-fields)
+  (let ((field-list (mapcar (lambda (e)
+                              (let ((field (car e))
+                                    (value (cadr e))
+                                    (minimum (caddr e)))
+                                (make-instance type :id field :value value :minimum minimum)))
+                            validation-fields)))
+    (validate-main field-list field-maps)))
+
+(defmethod validate-by-type ((type (eql 'validation-field)) field-maps validation-fields)
+  (let ((field-list (mapcar (lambda (e) (make-instance type :id (car e) :value (cadr e))) validation-fields)))
+    (validate-main field-list field-maps)))
+
 (defmacro with-validation (mappings validations pass fail)
   (let* ((validation-results (gensym "validation-results"))
          (field-maps-var (gensym "field-maps"))
@@ -35,15 +55,13 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
                  collect
                  (cond  
                    ((symbol-equal validation 'required)
-                    `(let ((,field-list-var (list ,@(mapcar (lambda (e) `(make-instance 'required-field :id ',e :value ,e)) validation-fields))))
-                       (validate-main ,field-list-var ,field-maps-var)))
+                    `(validate-by-type 'required-field ,field-maps-var (list ,@(mapcar (lambda (e) `(list ',e ,e)) validation-fields))))
                    ((symbol-equal validation 'minimum-length)
-                    `(let ((,field-list-var (list ,@(mapcar (lambda (e)
-                                                          (let ((field (car e))
-                                                                (minimum (cadr e)))
-                                                            `(make-instance 'minimum-length-field :id ',field :value ,field :minimum ,minimum)))
-                                                        validation-fields))))
-                       (validate-main ,field-list-var ,field-maps-var)))
+                    `(validate-by-type 'minimum-length-field ,field-maps-var (list ,@(mapcar (lambda (e)
+                                                                                               (let ((field (car e))
+                                                                                                     (minimum (cadr e)))
+                                                                                                 `(list ',field ,field ,minimum)))
+                                                                                             validation-fields))))
                    ((symbol-equal validation 'custom)
                     `(let ((,field-list-var (list ,@(mapcar (lambda (e) `(make-instance 'validation-field :id ',e :value ,e)) validation-fields))))
                        (,(caddr param) ,field-list-var ,field-maps-var)))
