@@ -29,3 +29,4 @@
 
 (defgeneric build-validation-message (validation-field text))
 
+(defgeneric validate-by-type (type field-maps validation-fields))

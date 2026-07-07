@@ -25,25 +25,6 @@ Output: VALUES of TEXT and UI-ELEMENT-ID."
    (symbol-name input-symbol)
    (symbol-name compare-symbol)))
 
-(defgeneric validate-by-type (type field-maps validation-fields))
-
-(defmethod validate-by-type ((type (eql 'required-field)) field-maps validation-fields)
-  (let ((field-list (mapcar (lambda (e) (make-instance type :id (car e) :value (cadr e))) validation-fields)))
-    (validate-main field-list field-maps)))
-
-(defmethod validate-by-type ((type (eql 'minimum-length-field)) field-maps validation-fields)
-  (let ((field-list (mapcar (lambda (e)
-                              (let ((field (car e))
-                                    (value (cadr e))
-                                    (minimum (caddr e)))
-                                (make-instance type :id field :value value :minimum minimum)))
-                            validation-fields)))
-    (validate-main field-list field-maps)))
-
-(defmethod validate-by-type ((type (eql 'validation-field)) field-maps validation-fields)
-  (let ((field-list (mapcar (lambda (e) (make-instance type :id (car e) :value (cadr e))) validation-fields)))
-    (validate-main field-list field-maps)))
-
 (defmacro with-validation (mappings validations pass fail)
   (let* ((validation-results (gensym "validation-results"))
          (field-maps-var (gensym "field-maps"))

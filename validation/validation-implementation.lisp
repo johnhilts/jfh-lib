@@ -39,3 +39,20 @@
 
 (defmethod build-validation-message ((validation-field minimum-length-field) text)
   (format nil "~A requires at least ~D characters." text (minimum validation-field)))
+
+(defmethod validate-by-type ((type (eql 'required-field)) field-maps validation-fields)
+  (let ((field-list (mapcar (lambda (e) (make-instance type :id (first e) :value (second e))) validation-fields)))
+    (validate-main field-list field-maps)))
+
+(defmethod validate-by-type ((type (eql 'minimum-length-field)) field-maps validation-fields)
+  (let ((field-list (mapcar (lambda (e)
+                              (let ((field (first e))
+                                    (value (second e))
+                                    (minimum (third e)))
+                                (make-instance type :id field :value value :minimum minimum)))
+                            validation-fields)))
+    (validate-main field-list field-maps)))
+
+(defmethod validate-by-type ((type (eql 'validation-field)) field-maps validation-fields)
+  (let ((field-list (mapcar (lambda (e) (make-instance type :id (first e) :value (second e))) validation-fields)))
+    (validate-main field-list field-maps)))
