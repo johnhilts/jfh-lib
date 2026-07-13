@@ -12,6 +12,7 @@
    #:static-root
    #:add-static-path-map
    #:define-api-endpoint
+   #:get-form-object
    #:fetch-or-create-user-session
    #:site-origin
    #:site-display-name
