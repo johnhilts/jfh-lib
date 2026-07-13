@@ -16,3 +16,6 @@
          (list ,@(mapcar (lambda (a p) `(cons ',a (tbnl:post-parameter ,p))) accessors post-names))
          (let ((,obj-var ,get-instance))
            (list ,@(mapcar (lambda (a) `(cons ',a (,a ,obj-var))) accessors))))))
+
+(defmacro getv (symbol alist)
+  `(cdr (assoc ',symbol ,alist)))
