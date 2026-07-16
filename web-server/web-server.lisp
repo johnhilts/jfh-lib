@@ -48,7 +48,7 @@ Output: web-configuration object."
   "Add handlers for provided static content web/path mappings."
   (mapc
    (lambda (mapping)
-     (push
+     (pushnew
       (tbnl:create-static-file-dispatcher-and-handler (car mapping) (cdr mapping))
       tbnl:*dispatch-table*))
    *static-path-maps*))
