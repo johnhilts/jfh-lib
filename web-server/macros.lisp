@@ -11,11 +11,15 @@
        ,@body)))
 
 (defmacro get-form-object (&key is-post accessors post-names get-instance)
-  (let ((obj-var (gensym "obj")))
+  (let ((obj-var (gensym "obj"))
+        (get-instance-var (gensym "get-instance")))
     `(if ,is-post
          (list ,@(mapcar (lambda (a p) `(cons ',a (tbnl:post-parameter ,p))) accessors post-names))
-         (let ((,obj-var ,get-instance))
-           (list ,@(mapcar (lambda (a) `(cons ',a (,a ,obj-var))) accessors))))))
+         (let ((,get-instance-var ',get-instance))
+           (if ,get-instance-var
+             (let ((,obj-var ,get-instance))
+               (list ,@(mapcar (lambda (a) `(cons ',a (,a ,obj-var))) accessors)))
+             nil)))))
 
 (defmacro getv (symbol alist)
   `(cdr (assoc ',symbol ,alist)))
