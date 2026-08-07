@@ -1,7 +1,7 @@
 ;;;; protocol for auth related concerns. 
 (cl:in-package #:jfh-auth)
 
-(defgeneric on-auth-success () ;; was ON-AUTH-HOOK and ON-SUCCESSFUL-AUTH
+(defgeneric on-auth-success ()
   (:documentation "Run this when auth is successful."))
 
 (defgeneric on-auth-failure () ;; was show-auth-failure

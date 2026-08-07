@@ -21,7 +21,7 @@
   (if authed
       (progn
         (jfh-web-server:fetch-or-create-user-session (make-instance 'jfh-user:application-user-login :user-login (jfh-user:user-login user-info)))
-        (jfh-auth:on-auth-success) ;; 'web-app:on-auth-hook
+        (jfh-auth:on-auth-success)
         (tbnl:redirect redirect-back-to)) ;; to test this, need to mock *request* and *acceptor*
       (jfh-auth:on-auth-failure)))
 

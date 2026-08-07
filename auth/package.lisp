@@ -2,26 +2,17 @@
 
 (defpackage #:jfh-auth
   (:use #:common-lisp)
-  ;; (:local-nicknames (#:web #:jfh-web-core))
   (:export
    #:auth
    #:auth-configuration
    #:*auth-configuration*
    #:*webauthn-configuration*
-   ;; #:webauthn
-   ;; #:authenticated-user-id
    #:*session-user-map*
-   ;; #:the-session-key
    #:on-auth-success
    #:on-auth-failure
    #:get-certificate-fingerprint-from-file
-   #:validate-signup-parameters ;; TODO - remove
-   ;; #:establish-user-session
-   ;; #:get-authenticated-user
-   ;; mfa
    #:enable-webauthn
    #:enable-totp
-   ;;#:validate-mfa-totp
    #:generate-totp-secret
    #:refresh-mfa-expiration
    #:webauthn-mfa
@@ -34,15 +25,12 @@
    #:save-totp-info
    #:base32-encode-hex-string
    #:needs-totp-check
-   ;; #:get-webauthn-info
    #:needs-webauthn-check
    #:webauthn-challenge
    #:webauthn-info-readable
    #:webauthn-info
-   #:user-webauthn-credential-index-entry ;; TODO remove
    #:user-webauthn-credential-index
    #:credential-id
-   #:clean-return-url ; TODO remove!
    #:renew-mfa-check
    #:timeout
    #:challenge
