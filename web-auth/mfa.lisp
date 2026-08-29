@@ -21,6 +21,7 @@
   (let ((parsed-totp (jfh-auth:parse-to-integer-or-default input-totp))
         (repeats (1+ (* 2 minute-tolerance))))
     (let ((valid-totps (get-valid-totps user-id minute-tolerance repeats)))
-      (format t "~&Valid TOTPs: ~A~%" valid-totps)
+      (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+        (format t "~&Valid TOTPs: ~A~%" valid-totps))
       (find parsed-totp valid-totps :test #'=))))
 

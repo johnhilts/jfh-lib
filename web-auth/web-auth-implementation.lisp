@@ -17,7 +17,8 @@
        (handler-bind
            ((jfh-store:no-data-match
               (lambda (c)
-                (format t "~&No matching data found! CLASS-NAME: ~A~%USER ID: ~A~%WHERE: ~A~%" (jfh-store:the-class-name c) (jfh-store:user-id c) (jfh-store:where c))
+                (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                  (format t "~&No matching data found! CLASS-NAME: ~A~%USER ID: ~A~%WHERE: ~A~%" (jfh-store:the-class-name c) (jfh-store:user-id c) (jfh-store:where c)))
                 (return-from jfh-web-server:fetch-or-create-user-session nil))))
          (let ((user-id (jfh-store:user-id (jfh-user:get-secure-user-info user-identifier))))
            (remhash user-id jfh-auth:*mfa-checks*)
@@ -92,7 +93,8 @@
 
 (defmethod prompt-webauthn ((tbnl:*request* tbnl:request) user-id enabled-mfa-schemes)
   "Redirect to WebAuthN prompt. The conditions are: 1. No recent MFA check."
-  (format t "uri: ~A~%" (tbnl:request-uri tbnl:*request*))
+  (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+    (format t "uri: ~A~%" (tbnl:request-uri tbnl:*request*)))
   (if (needs-webauthn-setup user-id)
       (tbnl:redirect (format nil "/b-registration?return-url=~A" (tbnl:url-encode  (tbnl:request-uri tbnl:*request*))))
       (tbnl:redirect (format nil "/prompt-webauthn?return-url=~A" (tbnl:url-encode (tbnl:request-uri tbnl:*request*)))))

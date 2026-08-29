@@ -6,7 +6,7 @@
   :license  "MIT"
   :version "0.0.1"
   :serial t
-  :depends-on (#:hunchentoot #:jfh-auth #:jfh-user)
+  :depends-on (#:hunchentoot #:jfh-configuration #:jfh-auth #:jfh-user)
   :components ((:file package)
                (:file macros)
                (:file web-server-protocol)

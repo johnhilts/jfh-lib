@@ -7,7 +7,11 @@
    (%user-path-root
     :reader user-path-root
     :initarg :user-path-root
-    :initform (error "Value required for :user-path-root")))
+    :initform (error "Value required for :user-path-root"))
+   (%enable-console-logging
+    :reader enable-console-logging
+    :initarg :enable-console-logging
+    :initform nil))
   (:documentation "Application configurations."))
 
 (defgeneric make-application-configuration (data-store-location)

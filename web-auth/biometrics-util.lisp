@@ -222,7 +222,8 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
 
               (jfh-auth:refresh-mfa-expiration (jfh-store:user-id user-credential) 'jfh-auth:webauthn-mfa)
 
-              (format t "Finished login!~%")
+              (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                (format t "Finished login!~%"))
               (respond-json '(("status" . "ok"))))))))))
 
 (defun user-webauthn-credentials (user-id)

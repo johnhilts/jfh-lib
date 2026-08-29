@@ -6,11 +6,12 @@
   "Print application configuration."
   (print-unreadable-object (application-configuration stream :type t)
     (with-accessors ((settings-file-path settings-file-path)
-                     (user-path-root user-path-root))
+                     (user-path-root user-path-root)
+                     (enable-console-logging enable-console-logging))
         application-configuration
       (format stream
-	      "Settings File: ~s, User Path: ~s"
-	       settings-file-path user-path-root))))
+	      "Settings File: ~S, User Path: ~S, Enable Console Logging: ~:[false~;true~]"
+	       settings-file-path user-path-root enable-console-logging))))
 
 (defmethod make-application-configuration ((application-root-path string)) ;; TODO convert this to defun
   "Get configuration info from the file system and hydrate application-configuration object.

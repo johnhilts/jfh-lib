@@ -1,7 +1,5 @@
 (in-package #:jfh-web-server)
 
-(defparameter *print-sensitive* nil)
-
 ;; TODO: should this part go into "internal"? #-start-#
 (defun can-skip-certificate-auth ()
   (or
@@ -17,7 +15,8 @@
   (unless (can-skip-certificate-auth)
     (let* ((client-id (cl+ssl:certificate-fingerprint (tbnl:get-peer-ssl-certificate)))
            (user-identifier (make-instance 'jfh-user:application-user-fingerprint :user-fingerprint client-id)))
-      (when *print-sensitive* (format t "Link fingerprint to session using: ~A~%" client-id))
+      (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+        (format t "Link fingerprint to session using: ~A~%" client-id))
       (let* ((user-id (jfh-web-server:fetch-or-create-user-session user-identifier))
              (enabled-mfa-schemes (jfh-web-server:mfa-enabled-schemes (jfh-auth:auth-configuration *web-application*)))
              (need-mfa-check (need-mfa-check tbnl:*request* user-id enabled-mfa-schemes)))
@@ -30,32 +29,35 @@
   (handler-bind
       ((sb-bsd-sockets:socket-error
          (lambda (e)
-           (format t "~&[process-connection :around] Socket error: ~A~%" e)
+           (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+             (format t "~&[process-connection :around] Socket error: ~A~%" e))
            (return-from tbnl:process-connection)))
        (stream-error
          (lambda (e)
-           (format t "~&[process-connection :around] Stream error: ~A~%" e)
+           (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+             (format t "~&[process-connection :around] Stream error: ~A~%" e))
            (return-from tbnl:process-connection)))
        (type-error
          (lambda (e)
-           (format t "~&[process-connection :around] Type error: ~A~%" e)
+           (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+             (format t "~&[process-connection :around] Type error: ~A~%" e))
            (return-from tbnl:process-connection)))
        (cl+ssl::ssl-error-ssl
          (lambda (e)
-           (format t "~&[process-connection :around] SSL error SSL: ~A~%" e)
+           (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+             (format t "~&[process-connection :around] SSL error SSL: ~A~%" e))
            (return-from tbnl:process-connection))))
     (call-next-method)))
 
 (defmethod tbnl:process-connection :after ((tbnl:*acceptor* ssl-client-cert-acceptor) (socket t))
-  ;; (let ((*break-on-signals* 'error))
-    (handler-bind
-        ((error
-           (lambda (cond)
-             (break)
-             (format t "Error while processing the connection: ~A - caught by *ME* in the AFTER method!~%" cond)
-             (return-from tbnl:process-connection))))
-      (when (next-method-p)
-        (call-next-method)))) ; )
+  (handler-bind
+      ((error
+         (lambda (cond)
+           (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+             (format t "Error while processing the connection: ~A - caught by *ME* in the AFTER method!~%" cond))
+           (return-from tbnl:process-connection))))
+    (when (next-method-p)
+      (call-next-method))))
 
 
 (defmethod tbnl:initialize-connection-stream ((acceptor ssl-client-cert-acceptor) stream)
@@ -79,22 +81,27 @@
               (let ((client-cert (cl+ssl:ssl-stream-x509-certificate server-stream)))
                 (unless client-cert
                   ;; No client cert presented
-                  (format t "~&No client certificate presented. Connection ignored.~%"))
+                  (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                    (format t "~&No client certificate presented. Connection ignored.~%")))
                 server-stream)
             (cl+ssl::ssl-error (e)
               ;; SSL handshake failed—likely due to missing or invalid client cert
-              (format t "~&[initialize-connection-stream] SSL error during handshake: ~A~%" e)
+              (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                (format t "~&[initialize-connection-stream] SSL error during handshake: ~A~%" e))
               server-stream)
             (sb-bsd-sockets:socket-error (e)
               ;; Catch low-level stream/socket errors
-              (format t "~&[initialize-connection-stream] Socket error: ~A~%" e)
+              (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                (format t "~&[initialize-connection-stream] Socket error: ~A~%" e))
               server-stream)
             (stream-error (e)
-              (format t "~&[initialize-connection-stream] Stream error: ~A~%" e)
+              (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                (format t "~&[initialize-connection-stream] Stream error: ~A~%" e))
               server-stream)
             (error (e)
               ;; Catch-all for other unexpected errors
-              (format t "~&[initialize-connection-stream] Unexpected error during stream initialization: ~A~%" e)
+              (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+                (format t "~&[initialize-connection-stream] Unexpected error during stream initialization: ~A~%" e))
               server-stream)))))))
 
 (defmethod tbnl:acceptor-dispatch-request ((acceptor http-to-https-acceptor) request)

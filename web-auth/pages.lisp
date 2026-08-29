@@ -33,10 +33,11 @@
 
 (tbnl:define-easy-handler (logout-page-handler :uri "/logout") ()
   "logout endpoint"
-  (format t
-	  "~&www-authorization: ~A, authorization: *** ~A ***~%"
-	  (tbnl:header-out :www-authenticate)
-	  (tbnl:header-out "authorization"))
+  (when (jfh-configuration:enable-console-logging (jfh-configuration:get-configuration 'jfh-configuration:app))
+    (format t
+	    "~&www-authorization: ~A, authorization: *** ~A ***~%"
+	    (tbnl:header-out :www-authenticate)
+	    (tbnl:header-out "authorization")))
   (remhash (tbnl:session-value 'the-session) jfh-auth:*session-user-map*)
   (tbnl:delete-session-value 'the-session)
   (setf (tbnl:header-out :www-authenticate) nil)
