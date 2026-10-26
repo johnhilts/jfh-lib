@@ -13,6 +13,7 @@
 
 (defclass user-index (flat-file)
   ((%user-id :reader user-id :initarg :user-id))) ;; index file in the users folder
+(defclass non-unique-user-index (user-index) ()) ;; index file in the users folder that can have multiple entries for the same USER-ID.
 (defclass user-settings (flat-file)
   ((%user-id :reader user-id :initarg :user-id))) ;; user settings in users/{user-id}/ sub-folder
 (defclass user-data (flat-file)

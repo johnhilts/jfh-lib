@@ -9,6 +9,7 @@
    #:configuration
    #:user-config-data
    #:user-index
+   #:non-unique-user-index
    #:user-settings
    #:user-data
    #:user-id

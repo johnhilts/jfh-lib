@@ -199,6 +199,12 @@
       (overwrite-data full-file-name data-without-new-row)
       (prepend-data full-file-name serialized-data))))
 
+(defmethod update-object ((object non-unique-user-index) save-name) ;; NOTE: weakness: this will create duplicate entries, but right now over-looking this potential flaw
+  (multiple-value-bind
+        (full-file-name serialized-data)
+      (serialize-data-and-get-file-name object save-name)
+    (prepend-data full-file-name serialized-data)))
+
 (defmethod update-object ((object user-data) save-name)
   (multiple-value-bind
         (full-file-name serialized-data)

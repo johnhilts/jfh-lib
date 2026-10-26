@@ -56,7 +56,7 @@ Return the generated challenge and the JSON response."
         (user-id-bytes (user-id->bytes user-id)))
 
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'jfh-auth:webauthn-challenge :user-id user-id :challenge challenge))
+    (jfh-store:save-object (make-instance 'jfh-auth:webauthn-challenge :user-id user-id :challenge challenge :data-id ""))
 
     (respond-json
        `(("publicKey"
@@ -84,7 +84,7 @@ Return the generated challenge and the JSON response."
   "Save biometrics credentials.
   CREDENTIAL-ID is raw bytes, PUBLIC-KEY is COSE key map"
   (jfh-user:save-new-application-user
-   (make-instance 'jfh-auth:webauthn-info-readable :user-id user-id :public-key-readable public-key :credential-id credential-id :sign-count sign-count)))
+   (make-instance 'jfh-auth:webauthn-info-readable :user-id user-id :public-key-readable public-key :credential-id credential-id :sign-count sign-count :data-id "")))
 
 (defun expected-origin ()
   "Must match what the browser sees"
@@ -94,8 +94,7 @@ Return the generated challenge and the JSON response."
         (format nil "~A:~D" (jfh-web-server:site-origin jfh-auth:*webauthn-configuration*) ssl-port))))
 
 (defun webauthn-register-finish (request user-id)
-  (let* ((expected-challenge (jfh-auth:challenge (jfh-store:make-instance* 'jfh-auth:webauthn-challenge :user-id user-id)))
-         (body (parse-json-body request))
+  (let* ((body (parse-json-body request))
          (raw-id-b64 (cdr (assoc :raw-id body)))
          (response (cdr (assoc :response body)))
          (attestation-b64 (cdr (assoc :attestation-object response)))
@@ -105,15 +104,16 @@ Return the generated challenge and the JSON response."
           (attestation-object (base64url-decode attestation-b64))
           (client-data-json (base64url-decode client-data-b64)))
 
-      (multiple-value-bind (client-type client-challenge client-origin)
-          (parse-client-data-json client-data-json)
-        (unless (string= client-type "webauthn.create")
-          (error "Invalid clientData type: ~A." client-type))
-        (unless (equal client-challenge (base64url-encode (coerce expected-challenge 'octets)))
-          (error "Challenge mismatch: ~A." client-challenge))
+      (validate-client-data-json client-data-json user-id "webauthn.create")
+      ;; (multiple-value-bind (client-type client-challenge client-origin)
+      ;;     (parse-client-data-json client-data-json)
+      ;;   (unless (string= client-type "webauthn.create")
+      ;;     (error "Invalid clientData type: ~A." client-type))
+      ;;   (unless (equal client-challenge (base64url-encode (coerce expected-challenge 'octets)))
+      ;;     (error "Challenge mismatch: ~A." client-challenge))
 
-        (unless (string= client-origin (expected-origin))
-          (error "Origin mismatch: ~A." client-origin))
+      ;;   (unless (string= client-origin (expected-origin))
+      ;;     (error "Origin mismatch: ~A." client-origin))
 
         (multiple-value-bind (fmt auth-data att-stmt)
             (parse-attestation-object attestation-object)
@@ -131,14 +131,14 @@ Return the generated challenge and the JSON response."
 
             (store-webauthn-credential :user-id user-id :credential-id raw-id :public-key cred-pubkey :sign-count sign-count)
 
-            (respond-json '(("status" . "ok")))))))))
+            (respond-json '(("status" . "ok")))))))) ;; )
 
 (defun webauthn-login-start (user-id)
   (let ((challenge (generate-challenge))
         (credentials (user-webauthn-credentials user-id)))
     
     ;; NOTE - persist the challenge across requests; I don't want to use session for this.
-    (jfh-store:save-object (make-instance 'jfh-auth:webauthn-challenge :user-id user-id :challenge challenge))
+    (jfh-store:save-object (make-instance 'jfh-auth:webauthn-challenge :user-id user-id :challenge challenge :data-id ""))
 
     (respond-json
      `(("publicKey"
@@ -152,7 +152,7 @@ Return the generated challenge and the JSON response."
                   `(("type" . "public-key")
                     ("id" . ,(base64url-encode
                               (coerce (credential-id-bytes cred) 'octets)))))
-                (list credentials)))))))))
+                credentials))))))))
 
 (defun cose-key->xy (cose-key)
   "Extract X and Y from COSE EC2 key as byte vectors."
@@ -171,15 +171,22 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
       (cose-key->xy cose-public-key)
     (jfh-auth:verify-es256 x-bytes y-bytes signed-bytes signature)))
 
-(defun validate-client-data-json (client-data-json user-id)
+(defun find-challenge (client-challenge user-id)
+  (let* ((expected-challenges (jfh-store:make-instance-list 'jfh-auth:webauthn-challenge :user-id user-id)))
+    (find-if
+     (lambda (e)
+       (let* ((expected-challenge (jfh-auth:challenge e))
+              (coerced-expected-challenge (coerce expected-challenge 'octets)))
+         (equal client-challenge (base64url-encode coerced-expected-challenge))))
+     expected-challenges)))
+
+(defun validate-client-data-json (client-data-json user-id expected-client-type)
   (multiple-value-bind (client-type client-challenge client-origin)
       (parse-client-data-json client-data-json)
-    (unless (string= client-type "webauthn.get")
+    (unless (string= client-type expected-client-type)
       (error "Invalid clientData type: ~A" client-type))
-    (let* ((expected-challenge (jfh-auth:challenge (jfh-store:make-instance* 'jfh-auth:webauthn-challenge :user-id user-id)))
-           (coerced-expected-challenge (coerce expected-challenge 'octets)))
-      (unless (equal client-challenge (base64url-encode coerced-expected-challenge))
-        (error "Challenge mismatch: ~A" client-challenge)))
+    (unless (find-challenge client-challenge user-id)
+        (error "Challenge mismatch: ~A" client-challenge))
     (unless (string= client-origin (expected-origin))
       (error "Origin mismatch: ~A." client-origin))))
 
@@ -200,7 +207,7 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
                (client-data-json (base64url-decode client-data-b64))
                (signature (base64url-decode signature-b64)))
 
-          (validate-client-data-json client-data-json user-id)
+          (validate-client-data-json client-data-json user-id "webauthn.get")
           
           (multiple-value-bind (rp-id-hash flags new-sign-count aaguid cred-id cred-pubkey)
               (parse-authenticator-data auth-data)
@@ -228,17 +235,22 @@ SIGNATURE is the DER-encoded ECDSA signature from WebAuthn."
 
 (defun user-webauthn-credentials (user-id)
   "Return list/vector of credentials for user"
-  (let* ((readable-object (jfh-store:make-instance* 'jfh-auth:webauthn-info-readable :user-id user-id)))
-    (make-instance 'jfh-auth:webauthn-info
-                   :credential-id (jfh-auth:credential-id readable-object)
-                   :user-id (jfh-store:user-id readable-object)
-                   :public-key (jfh-auth:public-key-readable readable-object)
-                   :sign-count (jfh-auth:sign-count readable-object))))
+  (let* ((readable-objects (jfh-store:make-instance-list 'jfh-auth:webauthn-info-readable :user-id user-id)))
+    (loop
+      for readable-object in readable-objects
+      collect
+      (make-instance 'jfh-auth:webauthn-info
+                     :data-id (jfh-store:data-id readable-object)
+                     :credential-id (jfh-auth:credential-id readable-object)
+                     :user-id (jfh-store:user-id readable-object)
+                     :public-key (jfh-auth:public-key-readable readable-object)
+                     :sign-count (jfh-auth:sign-count readable-object)))))
 
 (defun find-credential-by-id (credential-id)
   "Lookup credential for user by credential-id bytes"
   (let ((readable-object (find-user-by-credential credential-id)))
     (make-instance 'jfh-auth:webauthn-info
+                   :data-id ""
                    :credential-id (jfh-auth:credential-id readable-object)
                    :user-id (jfh-store:user-id readable-object)
                    :public-key (jfh-auth:public-key-readable readable-object)

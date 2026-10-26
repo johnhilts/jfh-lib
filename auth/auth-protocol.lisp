@@ -18,10 +18,10 @@
 (defgeneric prompt-webauthn (request user-id enabled-mfa-schemes) 
   (:documentation "Prompt for WebAuthN. Redirect to another page to prompt input."))
 
-(defclass webauthn-challenge (jfh-store:user-settings)
+(defclass webauthn-challenge (jfh-store:user-data)
   ((%challenge :accessor challenge :initarg :challenge)))
 
-(defclass webauthn-info-readable (jfh-store:user-settings)
+(defclass webauthn-info-readable (jfh-store:user-data)
   ((%credential-id :accessor credential-id :initarg :credential-id)
    (%public-key-readable :accessor public-key-readable :initarg :public-key-readable)
    (%sign-count :accessor sign-count :initarg :sign-count)))
@@ -40,5 +40,5 @@
 (defgeneric make-auth-configuration ()
   (:documentation "Output: AUTH-CONFIGURATION object."))
 
-(defclass user-webauthn-credential-index (jfh-store:user-index)
+(defclass user-webauthn-credential-index (jfh-store:non-unique-user-index)
   ((%user-credential-id :reader user-credential-id :initarg :user-credential-id)))
